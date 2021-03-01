@@ -50,6 +50,8 @@ namespace Models.ViewModels
 
         public string Name { get; set; }
 
+        public string Color { get; set; }
+
         public int EventId { get; set; }
 
         public TeamMemberVm Captain { get; set; }

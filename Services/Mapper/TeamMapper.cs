@@ -39,7 +39,7 @@ namespace Services.Mapper
 
         public static async Task<TeamVm> TeamVm(Team team)
         {
-            var teamVm = new TeamVm {Captain = new TeamMemberVm(), Name = team.Name, EventId = team.EventId, TeamId = team.TeamId};
+            var teamVm = new TeamVm {Captain = new TeamMemberVm(), Name = team.Name, EventId = team.EventId, TeamId = team.TeamId, Color = team.Color};
             if (string.IsNullOrEmpty(team.Name))
             {
                 team.Name = team.TeamId.ToString();

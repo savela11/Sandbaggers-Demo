@@ -25,7 +25,7 @@ namespace Services
 
             try
             {
-                var allUsers = await _unitOfWork.User.GetAll(orderBy: u => u.OrderBy(i => i.UserProfile.LastName), includeProperties: "UserProfile, UserSettings");
+                var allUsers = await _unitOfWork.User.GetAll(orderBy: u => u.OrderBy(i => i.UserProfile.LastName), includeProperties: "UserProfile,UserSettings");
 
 
                 var contactVmList = ContactMapper.ContactVmList(allUsers.ToList());

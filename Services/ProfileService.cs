@@ -25,14 +25,14 @@ namespace Services
             var serviceResponse = new ServiceResponse<UserVm>();
             try
             {
-                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == userVm.Id);
+                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == userVm.Id, includeProperties:"UserProfile,UserSettings");
                 if (foundUser == null)
                 {
                     serviceResponse.Success = false;
                     serviceResponse.Message = "No User found by Id";
+                    return serviceResponse;
                 }
-                else
-                {
+
                     foundUser.PhoneNumber = userVm.PhoneNumber;
                     foundUser.Email = userVm.Email;
                     foundUser.FullName = userVm.Profile.FirstName + " " + userVm.Profile.LastName;
@@ -53,7 +53,6 @@ namespace Services
                     await _unitOfWork.Save();
 
                     serviceResponse.Data = UserMapper.UserVm(foundUser);
-                }
             }
             catch (Exception e)
             {
@@ -70,7 +69,7 @@ namespace Services
 
             try
             {
-                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == userId, includeProperties: "UserProfile");
+                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == userId, includeProperties: "UserProfile,UserSettings");
 
                 if (foundUser == null)
                 {
