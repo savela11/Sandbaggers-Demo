@@ -4,20 +4,20 @@ using Microsoft.AspNetCore.Mvc;
 using Models.DTO;
 using Services.Interface;
 
-namespace API.Controllers
+namespace API.Areas.Admin
 {
-    [Authorize(Roles = "Admin")]
+    [Area("Admin")]
+    [Authorize(Policy = "Admin")]
     [ApiController]
-    [Route("api/[controller]/[action]")]
-    public class RolesController : ControllerBase
+    [Route("api/[area]/[controller]/[action]")]
+    public class RoleManagerController : ControllerBase
     {
         private readonly IRoleService _roleService;
 
-        public RolesController(IRoleService roleService)
+        public RoleManagerController(IRoleService roleService)
         {
             _roleService = roleService;
         }
-
 
         [HttpPost]
         public async Task<ActionResult> CreateRole(CreateRoleDto createRoleDto)
@@ -43,7 +43,6 @@ namespace API.Controllers
 
             return Ok(result.Data);
         }
-
 
 
         [HttpPost]

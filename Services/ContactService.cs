@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Data;
 using Models.ViewModels;
-using SandbaggersAPI.Services.Interface;
+using Services.Interface;
 using Services.Mapper;
 using Utilities;
 

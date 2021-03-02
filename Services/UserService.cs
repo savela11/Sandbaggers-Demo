@@ -50,7 +50,7 @@ namespace Services
             var serviceResponse = new ServiceResponse<UserVm>();
             try
             {
-                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == id);
+                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == id, includeProperties:"UserProfile,UserSettings");
 
                 if (foundUser == null)
                 {

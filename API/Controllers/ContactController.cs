@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SandbaggersAPI.Services.Interface;
+using Services.Interface;
 
-namespace SandbaggersAPI.Controllers
+namespace API.Controllers
 {
     [Authorize]
     [ApiController]

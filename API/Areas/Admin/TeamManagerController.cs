@@ -1,45 +1,27 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models.DTO;
-using Models.ViewModels;
 using Services.Interface;
 
-namespace API.Controllers
+namespace API.Areas.Admin
 {
-    [Authorize]
+    [Area("Admin")]
+    [Authorize(Policy = "Admin")]
     [ApiController]
-    [Route("api/[controller]/[action]")]
-    public class TeamsController : ControllerBase
+    [Route("api/[area]/[controller]/[action]")]
+    public class TeamManagerController : ControllerBase
     {
         private readonly ITeamService _teamService;
 
-        public TeamsController(ITeamService teamService)
+        public TeamManagerController(ITeamService teamService)
         {
             _teamService = teamService;
         }
 
-        [HttpGet("{eventId}")]
-        public async Task<ActionResult> TeamsByEvent(int eventId)
-        {
-            var response = await _teamService.TeamsByEvent(eventId);
-            if (response.Success == false)
-            {
-                return BadRequest(response);
-            }
 
-            return Ok(response.Data);
-        }
-
-
-
-
-
-
-        [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult> CreateTeamForEvent(CreateTeamForEventDto createTeamForEventDto)
+        public async Task<ActionResult> CreateTeam(CreateTeamForEventDto createTeamForEventDto)
         {
             var response = await _teamService.CreateTeamForEvent(createTeamForEventDto);
             if (response.Success == false)
@@ -50,8 +32,8 @@ namespace API.Controllers
             return Ok(response.Data);
         }
 
-        [Authorize(Roles = "Admin")]
-        [HttpDelete]
+
+        [HttpPost]
         public async Task<ActionResult> RemoveTeamFromEvent(RemoveTeamFromEventDto removeTeamFromEventDto)
         {
             var response = await _teamService.RemoveTeamFromEvent(removeTeamFromEventDto);
@@ -64,11 +46,11 @@ namespace API.Controllers
             return Ok(response.Data);
         }
 
-        [Authorize(Roles = "Admin")]
-        [HttpPost]
-        public async Task<ActionResult> UpdateTeams(List<TeamVm> teamVmList)
+
+        [HttpGet("{eventId}")]
+        public async Task<ActionResult> Team(int eventId)
         {
-            var response = await _teamService.UpdateTeams(teamVmList);
+            var response = await _teamService.TeamsByEvent(eventId);
             if (response.Success == false)
             {
                 return BadRequest(response);

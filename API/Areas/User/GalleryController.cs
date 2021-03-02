@@ -5,12 +5,13 @@ using Microsoft.AspNetCore.Mvc;
 using Models.DTO;
 using Services.Interface;
 
-namespace API.Controllers
+namespace API.Areas.User
 {
+    [Area("User")]
+    [Authorize(Policy = "User")]
     [ApiController]
-    [Authorize]
-    [Route("api/[controller]/[action]")]
-    public class GalleryController : Controller
+    [Route("api/[area]/[controller]/[action]")]
+    public class GalleryController : ControllerBase
     {
         private readonly IGalleryService _galleryService;
         private readonly IAzureStorageService _azureStorageService;
@@ -21,9 +22,8 @@ namespace API.Controllers
             _azureStorageService = azureStorageService;
         }
 
-
         [HttpGet]
-        public async Task<ActionResult> Galleries()
+        public async Task<ActionResult> List()
         {
             var response = await _galleryService.Galleries();
             if (response.Success == false)
@@ -35,7 +35,7 @@ namespace API.Controllers
         }
 
         [HttpGet("{eventId}")]
-        public async Task<ActionResult> Gallery(int eventId)
+        public async Task<ActionResult> ById(int eventId)
         {
             var response = await _galleryService.Gallery(eventId);
             if (response.Success == false)
@@ -60,7 +60,7 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> AddImgListToGallery(AddImageListToGalleryDto addImageListToGalleryDto)
+        public async Task<ActionResult> AddImageListToGallery(AddImageListToGalleryDto addImageListToGalleryDto)
         {
             var response = await _galleryService.AddImageListToGallery(addImageListToGalleryDto);
 

@@ -53,7 +53,14 @@ namespace API
                 options.AddPolicy("User", policy =>
                 {
                     policy.RequireAuthenticatedUser();
-                    policy.RequireClaim("Claim", "User");
+                    // policy.RequireClaim("Claim", "User");
+                    policy.RequireRole("User");
+                });
+                options.AddPolicy("Admin", policy =>
+                {
+                    policy.RequireAuthenticatedUser();
+                    // policy.RequireClaim("Claim", "Admin");
+                    policy.RequireRole("Admin");
                 });
             });
             var appSettingsSection = Configuration.GetSection("AppSettings");
@@ -85,7 +92,19 @@ namespace API
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllerRoute(
+                    name: "default",
+                    "{controller}/{action}/{id?}"
+                );
+
+                endpoints.MapControllerRoute(
+                    name: "areas",
+                    "{area}/{controller}/{action}/{id?}"
+                );
+                // endpoints.MapControllers();
+            });
         }
     }
 }

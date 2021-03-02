@@ -320,7 +320,7 @@ namespace Services
 
             try
             {
-                var publishedEvents = await _unitOfWork.Event.GetAll(e => e.IsPublished, orderBy: e => e.OrderByDescending(x => int.Parse(x.Year)));
+                var publishedEvents = await _unitOfWork.Event.GetAll(e => e.IsPublished, orderBy: e => e.OrderByDescending(x => x.Year));
 
                 var eventVmList = await _eventMapper.EventVmList(publishedEvents.ToList());
 

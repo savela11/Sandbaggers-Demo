@@ -107,18 +107,19 @@ namespace Services
                     newUser.UserSettings = newSettings;
 
                     string roleName;
-                    string claimValue;
+                    // string claimValue;
+
                     // Check if Admin or User role exists before adding a user to that role
                     if (registerUserDto.RegistrationCode == "ADMIN2006" || registerUserDto.RegistrationCode == "2006")
                     {
                         roleName = registerUserDto.RegistrationCode == "ADMIN2006" ? "Admin" : "User";
-                        claimValue = "User";
+                        // claimValue = "User";
                     }
                     else
                     {
                         roleName = "TestUser";
 
-                        claimValue = "TestUser";
+                        // claimValue = "TestUser";
                     }
 
                     if (roleName == "Admin")
@@ -140,7 +141,7 @@ namespace Services
                     }
 
                     await _unitOfWork.UserManager.AddUserToRole(newUser, "User");
-                    await _unitOfWork.UserManager.CreateNewClaim(newUser, claimValue);
+                    // await _unitOfWork.UserManager.CreateNewClaim(newUser, claimValue);
                     await _unitOfWork.Save();
                     var applicationUserVm = new ApplicationUserVm
                     {
@@ -192,7 +193,7 @@ namespace Services
                 if (signInResult.Succeeded)
                 {
                     var userRoles = await _unitOfWork.UserManager.UserRoles(foundUser);
-                    var token = await AuthenticateUser(foundUser, userRoles);
+                    var token =  AuthenticateUser(foundUser, userRoles);
                     var loggedInUserVm = new LoggedInUserVm
                     {
                         Id = foundUser.Id,
@@ -246,28 +247,22 @@ namespace Services
         }
 
 
-        private async Task<string> AuthenticateUser(ApplicationUser user, ICollection<string> userRoles)
+        private  string AuthenticateUser(ApplicationUser user, IEnumerable<string> userRoles)
         {
             if (user == null)
             {
                 return null;
             }
 
-            var role = userRoles.Contains("Admin") ? "Admin" : "User";
-            var userClaims = await _unitOfWork.UserManager.GetClaims(user);
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(userClaims[0].Type, userClaims[0].Value),
                     new Claim(ClaimTypes.Name, user.Id),
-                    // new Claim(ClaimsRole, "Admin"),
-                    // new Claim("TestClaim", "Test"),
-                    new Claim(ClaimTypes.Role, role)
                 }),
-
                 // Issuer = api website that issued the token
                 // Audience - who the token is supposed to be read by
                 Expires = DateTime.UtcNow.AddDays(1),
@@ -275,10 +270,63 @@ namespace Services
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature)
             };
+
+            foreach (var userRole in userRoles)
+            {
+                tokenDescriptor.Subject.AddClaim(new Claim(ClaimTypes.Role, userRole));
+            }
+
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var userToken = tokenHandler.WriteToken(token);
 
             return userToken;
         }
+
+
+        // OLD
+          // private async Task<string> AuthenticateUser(ApplicationUser user, ICollection<string> userRoles)
+          //       {
+          //           if (user == null)
+          //           {
+          //               return null;
+          //           }
+          //
+          //           var role = userRoles.Contains("Admin") ? "Admin" : "User";
+          //           var userClaims = await _unitOfWork.UserManager.GetClaims(user);
+          //           var tokenHandler = new JwtSecurityTokenHandler();
+          //           var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
+          //           var tokenDescriptor = new SecurityTokenDescriptor
+          //           {
+          //               Subject = new ClaimsIdentity(new[]
+          //               {
+          //                   // new Claim(ClaimTypes.Role, role),
+          //                   // new Claim(userClaims[0].Type, userClaims[0].Value),
+          //                   new Claim(ClaimTypes.Name, user.Id),
+          //                   // new Claim(ClaimsRole, "Admin"),
+          //                   // new Claim("TestClaim", "Test"),
+          //                   // new Claim(ClaimsRole, "Admin")
+          //
+          //                   // new Claim(ClaimTypes.Role, roleBuilder.ToString()),
+          //               }),
+          //
+          //               // Issuer = api website that issued the token
+          //               // Audience - who the token is supposed to be read by
+          //               Expires = DateTime.UtcNow.AddDays(1),
+          //               // Expires = DateTime.UtcNow.AddSeconds(10),
+          //               SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
+          //                   SecurityAlgorithms.HmacSha256Signature)
+          //           };
+          //
+          //
+          //           foreach (var userRole in userRoles)
+          //           {
+          //               tokenDescriptor.Subject.AddClaim(new Claim(ClaimTypes.Role, userRole));
+          //           }
+          //
+          //           var token = tokenHandler.CreateToken(tokenDescriptor);
+          //           var userToken = tokenHandler.WriteToken(token);
+          //
+          //           return userToken;
+          //       }
     }
 }

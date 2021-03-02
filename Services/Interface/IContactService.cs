@@ -4,7 +4,7 @@ using Models.ViewModels;
 
 using Utilities;
 
-namespace SandbaggersAPI.Services.Interface
+namespace Services.Interface
 {
     public interface IContactService
     {
