@@ -3,25 +3,27 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interface;
 
-namespace API.Controllers
+namespace API.Areas.User
 {
-    [Authorize]
-    [ApiController]
-    [Route("api/[controller]/[action]")]
-    public class EventResultsController : ControllerBase
-    {
-        private readonly IEventResultsService _eventResultsService;
 
-        public EventResultsController(IEventResultsService eventResultsService)
+    [Area("User")]
+    [Authorize(Policy = "User")]
+    [ApiController]
+    [Route("api/[area]/[controller]/[action]")]
+    public class EventResultController : ControllerBase
+    {
+        private readonly IService _service;
+
+        public EventResultController(IService service)
         {
-            _eventResultsService = eventResultsService;
+            _service = service;
         }
 
         [HttpGet]
         [Route("{id}")]
         public async Task<ActionResult> Results(int id)
         {
-            var response = await _eventResultsService.EventResults(id);
+            var response = await _service.EventResult.EventResults(id);
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -33,7 +35,7 @@ namespace API.Controllers
         [HttpGet]
         public async Task<ActionResult> ScrambleChamps()
         {
-            var response = await _eventResultsService.ScrambleChamps();
+            var response = await _service.EventResult.ScrambleChamps();
             if (response.Success == false)
             {
                 if (response.Message == "No Scramble Champs set")
@@ -48,7 +50,6 @@ namespace API.Controllers
 
             return Ok(response.Data);
         }
-
 
     }
 }

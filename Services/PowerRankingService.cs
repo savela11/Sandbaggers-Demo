@@ -7,7 +7,6 @@ using Data.Models;
 using Models.DTO;
 using Models.ViewModels;
 using Services.Interface;
-using Services.Mapper;
 using Utilities;
 
 namespace Services
@@ -22,6 +21,76 @@ namespace Services
             _unitOfWork = unitOfWork;
         }
 
+        public async Task<ServiceResponse<PowerRankingVm>> PowerRankingVm(Event evnt)
+        {
+            var serviceResponse = new ServiceResponse<PowerRankingVm>();
+
+            try
+            {
+                var allUsers = await _unitOfWork.User.GetAll(includeProperties: "UserProfile");
+                var allUsersList = allUsers.ToList();
+                var powerRankingVm = new PowerRankingVm
+                {
+                    EventId = evnt.PowerRanking.EventId,
+                    EventName = evnt.PowerRanking.Event.Name,
+                    Year = evnt.PowerRanking.Year,
+                    Disclaimer = evnt.PowerRanking.Disclaimer,
+                    Rankings = new List<RankingVm>(),
+                    RegisteredUsers = new List<RegisteredUserVm>(),
+                    CreatedOn = evnt.PowerRanking.CreatedOn
+                };
+
+
+                foreach (var ranking in evnt.PowerRanking.Rankings)
+                {
+                    var userRanking = allUsersList.FirstOrDefault(u => u.Id == ranking.UserId);
+
+                    if (userRanking == null) continue;
+
+                    var rankingVm = new RankingVm
+                    {
+                        RankingId = ranking.RankingId,
+                        UserId = userRanking.Id,
+                        FullName = userRanking.FullName,
+                        Handicap = userRanking.UserProfile.Handicap,
+                        Rank = ranking.Rank,
+                        Trending = ranking.Trending,
+                        Writeup = ranking.Writeup,
+                        CreatedOn = ranking.CreatedOn,
+                        UpdatedOn = ranking.UpdatedOn
+                    };
+                    powerRankingVm.Rankings.Add(rankingVm);
+                }
+
+                foreach (var userid in evnt.RegisteredUserIds)
+                {
+                    var registeredUser = allUsersList.FirstOrDefault(u => u.Id == userid);
+
+                    if (registeredUser == null) continue;
+
+                    var registeredUserVm = new RegisteredUserVm
+                    {
+                        Id = registeredUser.Id,
+                        Username = registeredUser.UserName,
+                        FullName = registeredUser.FullName,
+                        Image = registeredUser.UserProfile.Image
+                    };
+
+                    powerRankingVm.RegisteredUsers.Add(registeredUserVm);
+                }
+
+
+                serviceResponse.Data = powerRankingVm;
+            }
+            catch (Exception e)
+            {
+                serviceResponse.Message = e.Message;
+                serviceResponse.Success = false;
+            }
+
+            return serviceResponse;
+        }
+
         public async Task<ServiceResponse<List<PowerRankingVm>>> PowerRankings()
         {
             var serviceResponse = new ServiceResponse<List<PowerRankingVm>>();
@@ -29,13 +98,12 @@ namespace Services
             try
             {
                 var foundEvents = await _unitOfWork.Event.GetAll(orderBy: evnt => evnt.OrderByDescending(e => e.CreatedOn), includeProperties: "PowerRanking");
-
-
                 var eventPowerRankingsList = new List<PowerRankingVm>();
                 foreach (var foundEvent in foundEvents)
                 {
-                    var powerRankingVm = await PowerRankingMapper.PowerRankingVm(foundEvent);
-                    eventPowerRankingsList.Add(powerRankingVm);
+                    var powerRankingVmResponse = await PowerRankingVm(foundEvent);
+
+                    eventPowerRankingsList.Add(powerRankingVmResponse.Data);
                 }
 
                 serviceResponse.Data = eventPowerRankingsList;
@@ -61,7 +129,14 @@ namespace Services
                 {
                     var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == registeredUserId, "UserProfile");
 
-                    var registeredUserVm = UserMapper.RegisteredUserVm(foundUser);
+                    var registeredUserVm = new RegisteredUserVm
+                    {
+                        Id = foundUser.Id,
+                        Username = foundUser.UserName,
+                        FullName = foundUser.FullName,
+                        Image = foundUser.UserProfile.Image
+                    };
+
                     registeredUserVmList.Add(registeredUserVm);
                 }
 
@@ -90,9 +165,16 @@ namespace Services
                     return serviceResponse;
                 }
 
-                var powerRankingVm = await PowerRankingMapper.PowerRankingVm(foundEvent);
+                var powerRankingVmResponse = await PowerRankingVm(foundEvent);
+                if (powerRankingVmResponse.Success == false)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = $"message";
+                    return serviceResponse;
+                }
 
-                serviceResponse.Data = powerRankingVm;
+
+                serviceResponse.Data = powerRankingVmResponse.Data;
             }
             catch (Exception e)
             {
@@ -117,6 +199,13 @@ namespace Services
                     return serviceResponse;
                 }
 
+                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == createRankingDto.UserId);
+                if (foundUser == null)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = $"No User found by id";
+                    return serviceResponse;
+                }
 
                 var userRanking = new Ranking
                 {
@@ -132,7 +221,18 @@ namespace Services
 
                 await _unitOfWork.Save();
 
-                var rankingVm = await PowerRankingMapper.RankingVm(userRanking);
+                var rankingVm = new RankingVm
+                {
+                    RankingId = userRanking.RankingId,
+                    UserId = foundUser.Id,
+                    FullName = foundUser.FullName,
+                    Handicap = userRanking.Handicap,
+                    Rank = userRanking.Rank,
+                    Trending = userRanking.Trending,
+                    Writeup = userRanking.Writeup,
+                    CreatedOn = userRanking.CreatedOn,
+                    UpdatedOn = DateTime.Now
+                };
 
 
                 serviceResponse.Data = rankingVm;

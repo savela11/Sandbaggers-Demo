@@ -12,23 +12,23 @@ namespace API.Areas.User
     [Route("api/[area]/[controller]/[action]")]
     public class DashboardController : ControllerBase
     {
-        private readonly IDashboardService _dashboardService;
+        private readonly IService _service;
 
-        public DashboardController(IDashboardService dashboardService)
+        public DashboardController(IService service)
         {
-            _dashboardService = dashboardService;
+            _service = service;
         }
 
 
         [HttpGet]
         public async Task<ActionResult> DashboardData()
         {
-
-            var response = await _dashboardService.DashboardData();
+            var response = await _service.Dashboard.DashboardData();
             if (response.Success == false)
             {
                 return BadRequest(response);
             }
+
 
             return Ok(response.Data);
         }
@@ -36,13 +36,20 @@ namespace API.Areas.User
         [HttpGet]
         public async Task<ActionResult> ActiveBets()
         {
-            var response = await _dashboardService.ActiveBets();
+            var response = await _service.Bet.AllActiveBets();
             if (response.Success == false)
             {
                 return BadRequest(response);
             }
 
-            return Ok(response.Data);
+            var betVmListResponse = await _service.Bet.BetVmList(response.Data);
+            if (betVmListResponse.Success == false)
+            {
+                return BadRequest(betVmListResponse);
+            }
+
+
+            return Ok(betVmListResponse.Data);
         }
     }
 }

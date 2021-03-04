@@ -11,25 +11,30 @@ namespace API.Areas.User
     [Route("api/[area]/[controller]/[action]")]
     public class EventsController : ControllerBase
     {
+        private readonly IService _service;
 
-        private readonly IEventService _eventService;
-
-        public EventsController(IEventService eventService)
+        public EventsController(IService service)
         {
-            _eventService = eventService;
+            _service = service;
         }
 
 
         [HttpGet]
         public async Task<ActionResult> Published()
         {
-            var response = await _eventService.PublishedEventsByYear();
+            var response = await _service.Event.PublishedEventsByYear();
             if (response.Success == false)
             {
                 return BadRequest(response);
             }
 
-            return Ok(response.Data);
+            var eventVmResponse = await _service.Event.EventVmList(response.Data);
+            if (eventVmResponse.Success == false)
+            {
+                return BadRequest(eventVmResponse);
+            }
+
+            return Ok(eventVmResponse.Data);
         }
     }
 }

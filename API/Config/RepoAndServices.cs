@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Services;
 using Services.Interface;
-using Services.Mapper;
 
 namespace API.Config
 {
@@ -11,6 +10,7 @@ namespace API.Config
         public static void Repositories(this IServiceCollection services)
         {
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IService, Service>();
         }
 
         public static void Services(this IServiceCollection services)

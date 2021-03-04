@@ -13,17 +13,17 @@ namespace API.Areas.Admin
     [Route("api/[area]/[controller]/[action]")]
     public class EventManagerController : ControllerBase
     {
-        private readonly IEventService _eventService;
+        private readonly IService _service;
 
-        public EventManagerController(IEventService eventService)
+        public EventManagerController( IService service)
         {
-            _eventService = eventService;
+            _service = service;
         }
 
         [HttpGet("{eventId}")]
         public async Task<ActionResult> Event(int eventId)
         {
-            var response = await _eventService.EventForEventManager(eventId);
+            var response = await _service.Event.EventForEventManager(eventId);
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -35,7 +35,7 @@ namespace API.Areas.Admin
         [HttpPost]
         public async Task<ActionResult> CreateEvent(CreateEventDto createEventDto)
         {
-            var response = await _eventService.CreateEvent(createEventDto);
+            var response = await _service.Event.CreateEvent(createEventDto);
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -47,19 +47,26 @@ namespace API.Areas.Admin
         [HttpPost]
         public async Task<ActionResult> UpdateEvent(EventVm sandbaggerEventVm)
         {
-            var response = await _eventService.UpdateEvent(sandbaggerEventVm);
-            if (response.Success == false)
+            var eventResponse = await _service.Event.UpdateEvent(sandbaggerEventVm);
+            if (eventResponse.Success == false)
             {
-                return BadRequest(response);
+                return BadRequest(eventResponse);
             }
 
-            return Ok(response.Data);
+            var eventVmResponse = await _service.Event.EventVm(eventResponse.Data);
+
+            if (eventVmResponse.Success == false)
+            {
+                return BadRequest(eventVmResponse);
+            }
+
+            return Ok(eventVmResponse.Data);
         }
 
         [HttpPost]
         public async Task<ActionResult> UnRegisterUser(RemoveUserFromEventDto removeUserFromEventDto)
         {
-            var response = await _eventService.RemoveUserFromEvent(removeUserFromEventDto);
+            var response = await _service.Event.RemoveUserFromEvent(removeUserFromEventDto);
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -71,7 +78,7 @@ namespace API.Areas.Admin
         [HttpPost]
         public async Task<ActionResult> RegisterUser(RegisterUserForEventDto registerUserForEventDto)
         {
-            var response = await _eventService.RegisterUserForEvent(registerUserForEventDto);
+            var response = await _service.Event.RegisterUserForEvent(registerUserForEventDto);
             if (response.Success == false)
             {
                 return BadRequest(response);

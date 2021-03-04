@@ -10,6 +10,6 @@ namespace Services.Interface
     {
         Task<ServiceResponse<DashboardViewData>> DashboardData();
 
-        Task<ServiceResponse<List<BetVm>>> ActiveBets();
+        // Task<ServiceResponse<List<BetVm>>> ActiveBets();
     }
 }

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Data;
 using Data.Models;
 using Models.DTO;
 using Models.ViewModels;
 using Services.Interface;
-using Services.Mapper;
 using Utilities;
 
 
@@ -21,6 +21,7 @@ namespace Services
             _unitOfWork = unitOfWork;
         }
 
+
         public async Task<ServiceResponse<List<IdeaVm>>> AllIdeas()
         {
             var serviceResponse = new ServiceResponse<List<IdeaVm>>();
@@ -28,7 +29,22 @@ namespace Services
             try
             {
                 var ideas = await _unitOfWork.Idea.GetAll();
-                var ideaVmList = await IdeaMapper.IdeaVmList(ideas);
+                var allUsers = await _unitOfWork.User.GetAll(includeProperties: "UserProfile");
+
+                var ideaVmList = ideas.Select(i => new IdeaVm
+                {
+                    Id = i.Id,
+                    Title = i.Title,
+                    Description = i.Description,
+                    CreatedBy = allUsers.Select(u => new CreatedByUserVm
+                    {
+                        Id = u.Id,
+                        FullName = u.FullName,
+                        Image = u.UserProfile.Image
+                    }).FirstOrDefault(u => u.Id == i.CreatedByUserId),
+                    CreatedOn = i.CreatedOn,
+                    UpdatedOn = i.UpdatedOn
+                }).ToList();
 
                 serviceResponse.Data = ideaVmList;
             }
@@ -55,7 +71,7 @@ namespace Services
                     return serviceResponse;
                 }
 
-                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == getIdeaDto.UserId);
+                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == getIdeaDto.UserId, includeProperties: "UserProfile");
                 if (foundUser == null)
                 {
                     serviceResponse.Success = false;
@@ -72,7 +88,21 @@ namespace Services
                     return serviceResponse;
                 }
 
-                var ideaVm = await IdeaMapper.IdeaVm(foundIdea);
+                var ideaVm = new IdeaVm
+                {
+                    Id = foundIdea.Id,
+                    Title = foundIdea.Title,
+                    Description = foundIdea.Description,
+                    CreatedBy = new CreatedByUserVm
+                    {
+                        Id = foundUser.Id,
+                        FullName = foundUser.FullName,
+                        Image = foundUser.UserProfile.Image
+                    },
+                    CreatedOn = foundIdea.CreatedOn,
+                    UpdatedOn = foundIdea.UpdatedOn
+                };
+
                 serviceResponse.Data = ideaVm;
             }
             catch (Exception e)
@@ -110,8 +140,22 @@ namespace Services
 
                     var createdIdea = await _unitOfWork.Idea.AddAsync(idea);
                     await _unitOfWork.Save();
+                    var ideaVm = new IdeaVm
+                    {
+                        Id = createdIdea.Id,
+                        Title = createdIdea.Title,
+                        Description = createdIdea.Description,
+                        CreatedBy = new CreatedByUserVm
+                        {
+                            Id = foundUser.Id,
+                            FullName = foundUser.FullName,
+                            Image = foundUser.UserProfile.Image
+                        },
+                        CreatedOn = createdIdea.CreatedOn,
+                        UpdatedOn = createdIdea.UpdatedOn
+                    };
 
-                    serviceResponse.Data = await IdeaMapper.IdeaVm(createdIdea);
+                    serviceResponse.Data = ideaVm;
                 }
             }
             catch (Exception e)

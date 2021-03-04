@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Data;
 using Models.ViewModels;
 using Services.Interface;
-using Services.Mapper;
 using Utilities;
 
 
@@ -13,11 +13,10 @@ namespace Services
     public class EventResultsService : IEventResultsService
     {
         private readonly IUnitOfWork _unitOfWork;
-   private readonly EventMapper _eventMapper;
+
         public EventResultsService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _eventMapper = new EventMapper(unitOfWork);
         }
 
         public async Task<ServiceResponse<List<ScrambleChampVm>>> ScrambleChamps()
@@ -26,17 +25,24 @@ namespace Services
             try
             {
                 var eventResults = await _unitOfWork.EventResults.GetFirstOrDefault(e => e.IsActive);
-                var eventResultVm = await _eventMapper.EventResultsVm(eventResults);
-
                 if (eventResults == null)
                 {
                     serviceResponse.Success = false;
-                    serviceResponse.Message = "No Scramble Champs set";
+                    serviceResponse.Message = "No Event Results Found";
+                    return serviceResponse;
                 }
-                else
+
+
+                var users = await _unitOfWork.User.GetAll(includeProperties: "UserProfile");
+                var scrambleChampVms = new List<ScrambleChampVm>();
+                var applicationUsers = users.ToList();
+                if (eventResults.ScrambleChamps.Count > 0)
                 {
-                    serviceResponse.Data = eventResultVm.ScrambleChamps;
+                    scrambleChampVms = applicationUsers.Where(u => eventResults.ScrambleChamps.Contains(u.Id))
+                        .Select(u => new ScrambleChampVm {Id = u.Id, Image = u.UserProfile.Image, FullName = u.FullName}).ToList();
                 }
+
+                serviceResponse.Data = scrambleChampVms;
             }
             catch (Exception e)
             {
@@ -58,12 +64,18 @@ namespace Services
                 {
                     serviceResponse.Success = false;
                     serviceResponse.Message = "No Event found with current ID";
+                    return serviceResponse;
                 }
-                else
+
+                var eventResultsVm = new EventResultVm
                 {
-                    var eventResultVm = await _eventMapper.EventResultsVm(foundEventResults);
-                    serviceResponse.Data = eventResultVm;
-                }
+                    EventId = foundEventResults.EventId,
+                    Teams = null,
+                    ScrambleChamps = null,
+                    IsActive = false
+                };
+
+                serviceResponse.Data = eventResultsVm;
             }
             catch (Exception e)
             {

@@ -63,38 +63,38 @@ namespace Services
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<UserProfileViewData>> UserProfile(string userId)
-        {
-            var serviceResponse = new ServiceResponse<UserProfileViewData>();
-
-            try
-            {
-                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == userId, includeProperties: "UserProfile,UserSettings");
-
-                if (foundUser == null)
-                {
-                    serviceResponse.Success = false;
-                    serviceResponse.Message = "No User Found by id";
-                    return serviceResponse;
-                }
-
-
-                var userBets = await _unitOfWork.Bet.GetAll(b => b.CreatedByUserId == userId);
-
-                serviceResponse.Data = new UserProfileViewData
-                {
-                    UserVm = UserMapper.UserVm(foundUser),
-                    Bets = await BetMapper.BetVmList(userBets)
-                };
-            }
-            catch (Exception e)
-            {
-                serviceResponse.Message = e.Message;
-                serviceResponse.Success = false;
-            }
-
-            return serviceResponse;
-        }
+        // public async Task<ServiceResponse<UserProfileViewData>> UserProfile(string userId)
+        // {
+        //     var serviceResponse = new ServiceResponse<UserProfileViewData>();
+        //
+        //     try
+        //     {
+        //         var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == userId, includeProperties: "UserProfile,UserSettings");
+        //
+        //         if (foundUser == null)
+        //         {
+        //             serviceResponse.Success = false;
+        //             serviceResponse.Message = "No User Found by id";
+        //             return serviceResponse;
+        //         }
+        //
+        //
+        //         var userBets = await _unitOfWork.Bet.GetAll(b => b.CreatedByUserId == userId);
+        //
+        //         serviceResponse.Data = new UserProfileViewData
+        //         {
+        //             UserVm = UserMapper.UserVm(foundUser),
+        //             Bets = await BetMapper.BetVmList(userBets)
+        //         };
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         serviceResponse.Message = e.Message;
+        //         serviceResponse.Success = false;
+        //     }
+        //
+        //     return serviceResponse;
+        // }
 
         public async Task<ServiceResponse<string>> UpdateProfileImage(string userId, string profileImage)
         {
@@ -124,50 +124,50 @@ namespace Services
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<BetVm>> UpdateBet(BetVm betVm)
-        {
-            var serviceResponse = new ServiceResponse<BetVm>();
-
-            try
-            {
-                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == betVm.CreatedBy.Id, includeProperties: "UserProfile");
-                if (foundUser == null)
-                {
-                    serviceResponse.Success = false;
-                    serviceResponse.Message = "No User Found by Id";
-                    return serviceResponse;
-                }
-
-                var foundBet = await _unitOfWork.Bet.GetFirstOrDefault(b => b.BetId == betVm.BetId);
-                if (foundBet == null)
-                {
-                    serviceResponse.Success = false;
-                    serviceResponse.Message = "No Bet Found by Id";
-                    return serviceResponse;
-                }
-
-                foundBet.Title = betVm.Title;
-                foundBet.Description = betVm.Description;
-                foundBet.AcceptedByUserIds = betVm.AcceptedBy.Select(u => u.Id).ToList();
-                foundBet.Amount = betVm.Amount;
-                foundBet.CanAcceptNumber = betVm.CanAcceptNumber;
-                foundBet.UpdatedOn = DateTime.UtcNow;
-                foundBet.IsActive = betVm.IsActive;
-                foundBet.DoesRequirePassCode = betVm.DoesRequirePassCode;
-                await _unitOfWork.Save();
-
-
-                var bvm = await BetMapper.BetVm(foundBet);
-                serviceResponse.Data = bvm;
-            }
-            catch (Exception e)
-            {
-                serviceResponse.Message = e.Message;
-                serviceResponse.Success = false;
-            }
-
-            return serviceResponse;
-        }
+        // public async Task<ServiceResponse<BetVm>> UpdateBet(BetVm betVm)
+        // {
+        //     var serviceResponse = new ServiceResponse<BetVm>();
+        //
+        //     try
+        //     {
+        //         var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == betVm.CreatedBy.Id, includeProperties: "UserProfile");
+        //         if (foundUser == null)
+        //         {
+        //             serviceResponse.Success = false;
+        //             serviceResponse.Message = "No User Found by Id";
+        //             return serviceResponse;
+        //         }
+        //
+        //         var foundBet = await _unitOfWork.Bet.GetFirstOrDefault(b => b.BetId == betVm.BetId);
+        //         if (foundBet == null)
+        //         {
+        //             serviceResponse.Success = false;
+        //             serviceResponse.Message = "No Bet Found by Id";
+        //             return serviceResponse;
+        //         }
+        //
+        //         foundBet.Title = betVm.Title;
+        //         foundBet.Description = betVm.Description;
+        //         foundBet.AcceptedByUserIds = betVm.AcceptedBy.Select(u => u.Id).ToList();
+        //         foundBet.Amount = betVm.Amount;
+        //         foundBet.CanAcceptNumber = betVm.CanAcceptNumber;
+        //         foundBet.UpdatedOn = DateTime.UtcNow;
+        //         foundBet.IsActive = betVm.IsActive;
+        //         foundBet.DoesRequirePassCode = betVm.DoesRequirePassCode;
+        //         await _unitOfWork.Save();
+        //
+        //
+        //         var bvm = await BetMapper.BetVm(foundBet);
+        //         serviceResponse.Data = bvm;
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         serviceResponse.Message = e.Message;
+        //         serviceResponse.Success = false;
+        //     }
+        //
+        //     return serviceResponse;
+        // }
 
         public async Task<ServiceResponse<string>> DeleteBet(BetVm betVm)
         {

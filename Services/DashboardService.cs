@@ -6,7 +6,6 @@ using Data;
 using Models.ViewModels;
 using Models.ViewModels.Views;
 using Services.Interface;
-using Services.Mapper;
 using Utilities;
 
 namespace Services
@@ -62,25 +61,25 @@ namespace Services
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<List<BetVm>>> ActiveBets()
-        {
-            var serviceResponse = new ServiceResponse<List<BetVm>>();
-
-            try
-            {
-                var activeBets = await _unitOfWork.Bet.GetAll(b => b.IsActive, orderBy: b => b.OrderByDescending(o => o.CreatedOn));
-
-                var betVmList = await BetMapper.BetVmList(activeBets);
-
-                serviceResponse.Data = betVmList;
-            }
-            catch (Exception e)
-            {
-                serviceResponse.Message = e.Message;
-                serviceResponse.Success = false;
-            }
-
-            return serviceResponse;
-        }
+        // public async Task<ServiceResponse<List<Bet>>> ActiveBets()
+        // {
+        //     var serviceResponse = new ServiceResponse<List<Bet>>();
+        //
+        //     try
+        //     {
+        //         var activeBets = await _unitOfWork.Bet.GetAll(b => b.IsActive, orderBy: b => b.OrderByDescending(o => o.CreatedOn));
+        //
+        //
+        //
+        //         serviceResponse.Data = activeBets.ToList();
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         serviceResponse.Message = e.Message;
+        //         serviceResponse.Success = false;
+        //     }
+        //
+        //     return serviceResponse;
+        // }
     }
 }

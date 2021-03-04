@@ -13,19 +13,19 @@ namespace API.Areas.User
     [Route("api/[area]/[controller]/[action]")]
     public class GalleryController : ControllerBase
     {
-        private readonly IGalleryService _galleryService;
         private readonly IAzureStorageService _azureStorageService;
+        private readonly IService _service;
 
-        public GalleryController(IGalleryService galleryService, IAzureStorageService azureStorageService)
+        public GalleryController(IAzureStorageService azureStorageService, IService service)
         {
-            _galleryService = galleryService;
             _azureStorageService = azureStorageService;
+            _service = service;
         }
 
         [HttpGet]
         public async Task<ActionResult> List()
         {
-            var response = await _galleryService.Galleries();
+            var response = await _service.Gallery.Galleries();
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -37,7 +37,7 @@ namespace API.Areas.User
         [HttpGet("{eventId}")]
         public async Task<ActionResult> ById(int eventId)
         {
-            var response = await _galleryService.Gallery(eventId);
+            var response = await _service.Gallery.Gallery(eventId);
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -50,7 +50,7 @@ namespace API.Areas.User
         [HttpPost]
         public async Task<ActionResult> AddImageToGallery(AddGalleryImgDto addGalleryImgDto)
         {
-            var response = await _galleryService.AddImageToGallery(addGalleryImgDto);
+            var response = await _service.Gallery.AddImageToGallery(addGalleryImgDto);
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -62,7 +62,7 @@ namespace API.Areas.User
         [HttpPost]
         public async Task<ActionResult> AddImageListToGallery(AddImageListToGalleryDto addImageListToGalleryDto)
         {
-            var response = await _galleryService.AddImageListToGallery(addImageListToGalleryDto);
+            var response = await _service.Gallery.AddImageListToGallery(addImageListToGalleryDto);
 
             if (response.Success == false)
             {

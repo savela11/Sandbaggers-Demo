@@ -6,7 +6,6 @@ using Data;
 using Models.DTO;
 using Models.ViewModels;
 using Services.Interface;
-using Services.Mapper;
 using Utilities;
 using Data.Models;
 
@@ -23,10 +22,92 @@ namespace Services
         }
 
 
-
-        public async Task<ServiceResponse<BetVm>> CreateBet(CreateBetDto createBetDto)
+        public async Task<ServiceResponse<BetVm>> BetVm(Bet bet)
         {
             var serviceResponse = new ServiceResponse<BetVm>();
+
+            try
+            {
+                var createdByUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == bet.CreatedByUserId, includeProperties: "UserProfile");
+
+                if (createdByUser == null)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = "No User found by Id";
+                    return serviceResponse;
+                }
+
+
+                var createdByUserVm = new CreatedByUserVm
+                {
+                    Id = createdByUser.Id,
+                    FullName = createdByUser.FullName,
+                    Image = createdByUser.UserProfile.Image
+                };
+
+                var acceptedByUsers = await _unitOfWork.User.GetAll(u => bet.AcceptedByUserIds.Contains(u.Id));
+
+
+                var acceptedByUserVms = acceptedByUsers.Select(u => new AcceptedByUserVm {Id = u.Id, Image = u.UserProfile.Image, FullName = u.FullName}).ToList();
+
+
+                var betVm = new BetVm
+                {
+                    BetId = bet.BetId,
+                    Title = bet.Title,
+                    Description = bet.Description,
+                    Amount = bet.Amount,
+                    CreatedBy = createdByUserVm,
+                    CanAcceptNumber = bet.CanAcceptNumber,
+                    AcceptedBy = acceptedByUserVms,
+                    CreatedOn = bet.CreatedOn,
+                    UpdatedOn = bet.UpdatedOn,
+                    IsActive = bet.IsActive,
+                    DoesRequirePassCode = bet.DoesRequirePassCode
+                };
+
+                serviceResponse.Data = betVm;
+            }
+            catch (Exception e)
+            {
+                serviceResponse.Message = e.Message;
+                serviceResponse.Success = false;
+            }
+
+            return serviceResponse;
+        }
+
+        public async Task<ServiceResponse<List<BetVm>>> BetVmList(List<Bet> bets)
+        {
+            var serviceResponse = new ServiceResponse<List<BetVm>>();
+
+            try
+            {
+                var betVmList = new List<BetVm>();
+                foreach (var bet in bets)
+                {
+                    var betVmResponse = await BetVm(bet);
+                    if (betVmResponse.Success)
+                    {
+                        betVmList.Add(betVmResponse.Data);
+                    }
+                }
+
+                serviceResponse.Data = betVmList;
+            }
+            catch (Exception e)
+            {
+                serviceResponse.Message = e.Message;
+                serviceResponse.Success = false;
+            }
+
+            return serviceResponse;
+            throw new NotImplementedException();
+        }
+
+        public async Task<ServiceResponse<Bet>> CreateBet(CreateBetDto createBetDto)
+        {
+            var serviceResponse = new ServiceResponse<Bet>();
 
             try
             {
@@ -54,10 +135,8 @@ namespace Services
 
                 var createdBet = await _unitOfWork.Bet.AddAsync(bet);
 
-                var betVm = await BetMapper.BetVm(createdBet);
 
-
-                serviceResponse.Data = betVm;
+                serviceResponse.Data = createdBet;
             }
             catch (Exception e)
             {
@@ -68,9 +147,9 @@ namespace Services
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<BetVm>> Bet(int betId)
+        public async Task<ServiceResponse<Bet>> BetById(int betId)
         {
-            var serviceResponse = new ServiceResponse<BetVm>();
+            var serviceResponse = new ServiceResponse<Bet>();
             try
             {
                 var foundBet = await _unitOfWork.Bet.GetFirstOrDefault(b => b.BetId == betId);
@@ -82,8 +161,8 @@ namespace Services
                 }
 
 
-                var betVm = await BetMapper.BetVm(foundBet);
-                serviceResponse.Data = betVm;
+                // var betVm = await BetMapper.BetVm(foundBet);
+                serviceResponse.Data = foundBet;
             }
             catch (Exception e)
             {
@@ -94,24 +173,16 @@ namespace Services
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<List<BetVm>>> AllActiveBets()
+        public async Task<ServiceResponse<List<Bet>>> AllActiveBets()
         {
-            var serviceResponse = new ServiceResponse<List<BetVm>>();
+            var serviceResponse = new ServiceResponse<List<Bet>>();
 
             try
             {
                 var activeBets = await _unitOfWork.Bet.GetAll(filter: b => b.IsActive, bets => bets.OrderByDescending(b => b.CreatedOn));
 
-                var betVmList = new List<BetVm>();
 
-                foreach (var bet in activeBets)
-                {
-                    var betVm = await BetMapper.BetVm(bet);
-
-                    betVmList.Add(betVm);
-                }
-
-                serviceResponse.Data = betVmList;
+                serviceResponse.Data = activeBets.ToList();
             }
             catch (Exception e)
             {
@@ -122,22 +193,22 @@ namespace Services
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<List<BetVm>>> UserBets(string id)
+        public async Task<ServiceResponse<List<Bet>>> UserBets(string id)
         {
-            var serviceResponse = new ServiceResponse<List<BetVm>>();
+            var serviceResponse = new ServiceResponse<List<Bet>>();
             try
             {
                 var userBets = await _unitOfWork.Bet.GetAll(b => b.CreatedByUserId == id);
 
-                var betVmList = new List<BetVm>();
-                foreach (var userBet in userBets)
-                {
-                    var betVm = await BetMapper.BetVm(userBet);
-                    betVmList.Add(betVm);
-                }
+                // var betVmList = new List<BetVm>();
+                // foreach (var userBet in userBets)
+                // {
+                //     var betVm = await BetMapper.BetVm(userBet);
+                //     betVmList.Add(betVm);
+                // }
 
 
-                serviceResponse.Data = betVmList;
+                serviceResponse.Data = userBets.ToList();
             }
             catch (Exception e)
             {
@@ -242,7 +313,13 @@ namespace Services
                         foundBet.AcceptedByUserIds.Add(foundUser.Id);
                     }
 
-                    var acceptedByUserVm = UserMapper.AcceptedByUserVm(foundUser);
+                    var acceptedByUserVm = new AcceptedByUserVm
+                    {
+                        Id = foundUser.Id,
+                        FullName = foundUser.FullName,
+                        Image = foundUser.UserProfile.Image
+                    };
+
                     await _unitOfWork.Save();
                     serviceResponse.Data = acceptedByUserVm;
                 }
@@ -262,9 +339,9 @@ namespace Services
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<BetVm>> UpdateBet(BetVm betVm)
+        public async Task<ServiceResponse<Bet>> UpdateBet(BetVm betVm)
         {
-            var serviceResponse = new ServiceResponse<BetVm>();
+            var serviceResponse = new ServiceResponse<Bet>();
 
             try
             {
@@ -312,7 +389,7 @@ namespace Services
 
 
                 await _unitOfWork.Save();
-                serviceResponse.Data = await BetMapper.BetVm(foundBet);
+                serviceResponse.Data = foundBet;
             }
             catch (Exception e)
             {

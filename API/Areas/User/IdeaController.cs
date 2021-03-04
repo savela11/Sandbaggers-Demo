@@ -5,24 +5,26 @@ using Models.DTO;
 using Models.ViewModels;
 using Services.Interface;
 
-namespace API.Controllers
+namespace API.Areas.User
 {
-    [Authorize]
+    [Area("User")]
+    [Authorize(Policy = "User")]
     [ApiController]
-    [Route("api/[controller]/[action]")]
-    public class IdeasController : ControllerBase
+    [Route("api/[area]/[controller]/[action]")]
+    public class IdeaController : ControllerBase
     {
-        private readonly IIdeaService _ideaService;
+        private readonly IService _service;
 
-        public IdeasController(IIdeaService ideaService)
+        public IdeaController(IService service)
         {
-            _ideaService = ideaService;
+            _service = service;
         }
+
 
         [HttpGet]
         public async Task<ActionResult> AllIdeas()
         {
-            var response = await _ideaService.AllIdeas();
+            var response = await _service.Idea.AllIdeas();
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -31,24 +33,12 @@ namespace API.Controllers
             return Ok(response.Data);
         }
 
-        [HttpPost]
-        public async Task<ActionResult> Idea(GetIdeaDto getIdeaDto)
-        {
-            var response = await _ideaService.Idea(getIdeaDto);
 
-            if (response.Success == false)
-            {
-                return BadRequest(response);
-            }
 
-            return Ok(response.Data);
-        }
-
-        [Authorize(Policy = "User")]
         [HttpPost]
         public async Task<ActionResult> AddIdea(AddIdeaDto addIdeaDto)
         {
-            var response = await _ideaService.AddIdea(addIdeaDto);
+            var response = await _service.Idea.AddIdea(addIdeaDto);
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -60,7 +50,7 @@ namespace API.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> RemoveIdea(int id)
         {
-            var response = await _ideaService.RemoveIdea(id);
+            var response = await _service.Idea.RemoveIdea(id);
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -73,7 +63,7 @@ namespace API.Controllers
         [HttpPut]
         public async Task<ActionResult> UpdateIdea(IdeaVm ideaVm)
         {
-            var response = await _ideaService.UpdateIdea(ideaVm);
+            var response = await _service.Idea.UpdateIdea(ideaVm);
             if (response.Success == false)
             {
                 return BadRequest(response);
