@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Services;
 using Services.Interface;
+using Services.Mapper;
 
 namespace API.Config
 {
