@@ -11,5 +11,6 @@
         public IIdeaService Idea { get; }
         public IPowerRankingService PowerRanking { get; }
         public IEventResultsService EventResult { get; }
+        public ITeamService Team { get; }
     }
 }

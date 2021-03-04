@@ -556,6 +556,7 @@ namespace Services
                             }
                         }
                     }
+
                     teamVmList.Add(teamVm);
                 }
 

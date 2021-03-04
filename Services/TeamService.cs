@@ -7,7 +7,6 @@ using Data.Models;
 using Models.DTO;
 using Models.ViewModels;
 using Services.Interface;
-using Services.Mapper;
 using Utilities;
 
 namespace Services
@@ -15,12 +14,87 @@ namespace Services
     public class TeamService : ITeamService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly EventMapper _eventMapper;
 
         public TeamService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _eventMapper = new EventMapper(unitOfWork);
+        }
+
+        public async Task<ServiceResponse<List<TeamVm>>> TeamVmList(Event evnt)
+        {
+            var serviceResponse = new ServiceResponse<List<TeamVm>>();
+
+            try
+            {
+                var teamVmList = new List<TeamVm>();
+
+                foreach (var team in evnt.Teams)
+                {
+                    var teamVmResponse = await TeamVm(team);
+                    teamVmList.Add(teamVmResponse.Data);
+                }
+
+                serviceResponse.Data = teamVmList;
+            }
+            catch (Exception e)
+            {
+                serviceResponse.Message = e.Message;
+                serviceResponse.Success = false;
+            }
+
+            return serviceResponse;
+        }
+
+        public async Task<ServiceResponse<TeamVm>> TeamVm(Team team)
+        {
+            var serviceResponse = new ServiceResponse<TeamVm>();
+
+            try
+            {
+                var teamVm = new TeamVm {Captain = new TeamMemberVm(), Name = team.Name, EventId = team.EventId, TeamId = team.TeamId, Color = team.Color};
+                if (string.IsNullOrEmpty(team.Name))
+                {
+                    team.Name = team.TeamId.ToString();
+                }
+
+                if (!string.IsNullOrEmpty(team.CaptainId))
+                {
+                    var foundCaptain = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == team.CaptainId, includeProperties: "UserProfile");
+                    if (foundCaptain != null)
+                    {
+                        teamVm.Captain.Id = foundCaptain.Id;
+                        teamVm.Captain.Image = foundCaptain.UserProfile.Image;
+                        teamVm.Captain.FullName = foundCaptain.FullName;
+                    }
+                }
+
+                teamVm.TeamMembers = new List<TeamMemberVm>();
+                if (team.TeamMemberIds.Count > 0)
+                {
+                    foreach (var memberId in team.TeamMemberIds)
+                    {
+                        var foundTeamMember = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == memberId, includeProperties: "UserProfile");
+                        if (foundTeamMember != null)
+                        {
+                            teamVm.TeamMembers.Add(new TeamMemberVm
+                            {
+                                Id = foundTeamMember.Id,
+                                Image = foundTeamMember.UserProfile.Image,
+                                FullName = foundTeamMember.FullName
+                            });
+                        }
+                    }
+                }
+
+                serviceResponse.Data = teamVm;
+            }
+            catch (Exception e)
+            {
+                serviceResponse.Message = e.Message;
+                serviceResponse.Success = false;
+            }
+
+            return serviceResponse;
         }
 
         public async Task<ServiceResponse<List<TeamVm>>> TeamsByEvent(int eventId)
@@ -29,12 +103,14 @@ namespace Services
 
             try
             {
-                var eventTeams = await _unitOfWork.Team.GetAll(t => t.EventId == eventId);
-                var teamList = eventTeams.ToList();
-                if (teamList.Any())
+                var foundEvent = await _unitOfWork.Event.GetFirstOrDefault(e => e.EventId == eventId, includeProperties: "Teams");
+                // var eventTeams = await _unitOfWork.Team.GetAll(t => t.EventId == eventId);
+                // var teamList = eventTeams.ToList();
+                if (foundEvent.Teams.Any())
                 {
-                    var teamListVm = await TeamMapper.TeamVmList(teamList);
-                    serviceResponse.Data = teamListVm;
+                    var teamVmListResponse = await TeamVmList(foundEvent);
+
+                    serviceResponse.Data = teamVmListResponse.Data;
                 }
 
                 else
@@ -57,7 +133,6 @@ namespace Services
 
             try
             {
-                var teamList = new List<Team>();
                 foreach (var teamVm in teamVmList)
                 {
                     var foundTeam = await _unitOfWork.Team.GetFirstOrDefault(t => t.TeamId == teamVm.TeamId);
@@ -68,12 +143,10 @@ namespace Services
                     foundTeam.Name = teamVm.Name;
                     foundTeam.TeamMemberIds = teamMemberIds;
                     await _unitOfWork.Save();
-                    teamList.Add(foundTeam);
                 }
 
 
-                var createdTeamVmList = await TeamMapper.TeamVmList(teamList);
-                serviceResponse.Data = createdTeamVmList;
+                serviceResponse.Data = teamVmList;
             }
             catch (Exception e)
             {
@@ -84,9 +157,9 @@ namespace Services
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<EventVm>> RemoveTeamFromEvent(RemoveTeamFromEventDto removeTeamFromEventDto)
+        public async Task<ServiceResponse<Event>> RemoveTeamFromEvent(RemoveTeamFromEventDto removeTeamFromEventDto)
         {
-            var serviceResponse = new ServiceResponse<EventVm>();
+            var serviceResponse = new ServiceResponse<Event>();
 
             try
             {
@@ -118,25 +191,7 @@ namespace Services
                 await _unitOfWork.Save();
 
 
-                // var eventVm = new EventVm
-                // {
-                //     EventId = foundEvent.EventId,
-                //     Name = foundEvent.Name,
-                //     Location = foundEvent.Location,
-                //     Itineraries = foundEvent.Itineraries,
-                //     RegisteredUsers = foundEvent.RegisteredUserIds,
-                //     Teams = foundEvent.Teams,
-                //     Year = foundEvent.Year,
-                //     IsCurrentYear = foundEvent.IsCurrentYear,
-                //     IsPublished = foundEvent.IsPublished,
-                //     CreatedOn = foundEvent.CreatedOn,
-                //     UpdatedOn = foundEvent.UpdatedOn
-                // };
-
-                var eventVm = await _eventMapper.EventVm(foundEvent);
-
-
-                serviceResponse.Data = eventVm;
+                serviceResponse.Data = foundEvent;
             }
             catch (Exception e)
             {
@@ -176,8 +231,16 @@ namespace Services
                 var createdTeam = await _unitOfWork.Team.AddAsync(team);
 
                 await _unitOfWork.Save();
+                var teamVm = new TeamVm
+                {
+                    TeamId = createdTeam.TeamId,
+                    Name = createdTeam.Name,
+                    Color = createdTeam.Color,
+                    EventId = createdTeam.EventId,
+                    Captain = new TeamMemberVm(),
+                    TeamMembers = new List<TeamMemberVm>()
+                };
 
-                var teamVm = await TeamMapper.TeamVm(createdTeam);
 
                 serviceResponse.Data = teamVm;
             }

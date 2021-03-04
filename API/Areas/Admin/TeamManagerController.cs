@@ -12,18 +12,18 @@ namespace API.Areas.Admin
     [Route("api/[area]/[controller]/[action]")]
     public class TeamManagerController : ControllerBase
     {
-        private readonly ITeamService _teamService;
+        private readonly IService _service;
 
-        public TeamManagerController(ITeamService teamService)
+        public TeamManagerController(IService service)
         {
-            _teamService = teamService;
+            _service = service;
         }
 
 
         [HttpPost]
         public async Task<ActionResult> CreateTeam(CreateTeamForEventDto createTeamForEventDto)
         {
-            var response = await _teamService.CreateTeamForEvent(createTeamForEventDto);
+            var response = await _service.Team.CreateTeamForEvent(createTeamForEventDto);
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -36,21 +36,27 @@ namespace API.Areas.Admin
         [HttpPost]
         public async Task<ActionResult> RemoveTeamFromEvent(RemoveTeamFromEventDto removeTeamFromEventDto)
         {
-            var response = await _teamService.RemoveTeamFromEvent(removeTeamFromEventDto);
+            var response = await _service.Team.RemoveTeamFromEvent(removeTeamFromEventDto);
 
             if (response.Success == false)
             {
                 return BadRequest(response);
             }
 
-            return Ok(response.Data);
+            var eventVmForManagerResponse = await _service.Event.EventForEventManager(response.Data.EventId);
+            if (eventVmForManagerResponse.Success == false)
+            {
+                return BadRequest(eventVmForManagerResponse);
+            }
+
+            return Ok(eventVmForManagerResponse.Data);
         }
 
 
         [HttpGet("{eventId}")]
         public async Task<ActionResult> Team(int eventId)
         {
-            var response = await _teamService.TeamsByEvent(eventId);
+            var response = await _service.Team.TeamsByEvent(eventId);
             if (response.Success == false)
             {
                 return BadRequest(response);

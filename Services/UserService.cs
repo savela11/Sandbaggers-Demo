@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Data;
+using Data.Models;
 using Models.ViewModels;
 using Services.Interface;
-using Services.Mapper;
 using Utilities;
 
 
@@ -19,6 +20,36 @@ namespace Services
             _unitOfWork = unitOfWork;
         }
 
+        public UserVm UserVm(ApplicationUser user)
+        {
+            var userVm = new UserVm
+            {
+                Id = user.Id,
+                Username = user.UserName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                FullName = user.FullName,
+                Profile = new UserProfileVm
+                {
+                    Image = user.UserProfile.Image,
+                    FirstName = user.UserProfile.FirstName,
+                    LastName = user.UserProfile.LastName,
+                    Handicap = user.UserProfile.Handicap
+                },
+                Settings = new UserSettingsVm
+                {
+                    FavoriteLinks = user.UserSettings.FavoriteLinks.Select(f => new FavoriteLinkVm
+                    {
+                        Name = f.Name,
+                        Link = f.Link
+                    }).ToList(),
+                    IsContactNumberShowing = user.UserSettings.IsContactNumberShowing,
+                    IsContactEmailShowing = user.UserSettings.IsContactEmailShowing
+                },
+            };
+            return userVm;
+        }
+
         public async Task<ServiceResponse<List<UserVm>>> Users()
         {
             var serviceResponse = new ServiceResponse<List<UserVm>>();
@@ -29,7 +60,8 @@ namespace Services
                 List<UserVm> userVmList = new List<UserVm>();
                 foreach (var user in users)
                 {
-                    var userVm = UserMapper.UserVm(user);
+                    var userVm = UserVm(user);
+
 
                     userVmList.Add(userVm);
                 }
@@ -50,7 +82,7 @@ namespace Services
             var serviceResponse = new ServiceResponse<UserVm>();
             try
             {
-                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == id, includeProperties:"UserProfile,UserSettings");
+                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == id, includeProperties: "UserProfile,UserSettings");
 
                 if (foundUser == null)
                 {
@@ -59,7 +91,7 @@ namespace Services
                 }
                 else
                 {
-                    var userVm = UserMapper.UserVm(foundUser);
+                    var userVm = UserVm(foundUser);
                     serviceResponse.Data = userVm;
                 }
             }

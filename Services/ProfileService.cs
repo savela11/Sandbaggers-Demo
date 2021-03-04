@@ -2,10 +2,9 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Data;
+using Data.Models;
 using Models.ViewModels;
-using Models.ViewModels.Views;
 using Services.Interface;
-using Services.Mapper;
 using Utilities;
 
 namespace Services
@@ -25,7 +24,7 @@ namespace Services
             var serviceResponse = new ServiceResponse<UserVm>();
             try
             {
-                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == userVm.Id, includeProperties:"UserProfile,UserSettings");
+                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == userVm.Id, includeProperties: "UserProfile,UserSettings");
                 if (foundUser == null)
                 {
                     serviceResponse.Success = false;
@@ -33,26 +32,58 @@ namespace Services
                     return serviceResponse;
                 }
 
-                    foundUser.PhoneNumber = userVm.PhoneNumber;
-                    foundUser.Email = userVm.Email;
-                    foundUser.FullName = userVm.Profile.FirstName + " " + userVm.Profile.LastName;
-                    // Profile
-                    foundUser.UserProfile.Handicap = userVm.Profile.Handicap;
-                    foundUser.UserProfile.FirstName = userVm.Profile.FirstName;
-                    foundUser.UserProfile.LastName = userVm.Profile.LastName;
-                    foundUser.UserProfile.Image = userVm.Profile.Image;
-                    foundUser.UserProfile.UpdatedOn = DateTime.UtcNow;
+                foundUser.PhoneNumber = userVm.PhoneNumber;
+                foundUser.Email = userVm.Email;
+                foundUser.FullName = userVm.Profile.FirstName + " " + userVm.Profile.LastName;
+                // Profile
+                foundUser.UserProfile.Handicap = userVm.Profile.Handicap;
+                foundUser.UserProfile.FirstName = userVm.Profile.FirstName;
+                foundUser.UserProfile.LastName = userVm.Profile.LastName;
+                foundUser.UserProfile.Image = userVm.Profile.Image;
+                foundUser.UserProfile.UpdatedOn = DateTime.UtcNow;
 
 
-                    // Settings
-                    foundUser.UserSettings.FavoriteLinks = UserSettingsMapper.FavoriteLinks(userVm.Settings.FavoriteLinks);
-                    foundUser.UserSettings.IsContactEmailShowing = userVm.Settings.IsContactEmailShowing;
-                    foundUser.UserSettings.IsContactNumberShowing = userVm.Settings.IsContactNumberShowing;
+                // Settings
+                foundUser.UserSettings.FavoriteLinks = userVm.Settings.FavoriteLinks.Select(s => new FavoriteLink
+                {
+                    Name = s.Name,
+                    Link = s.Link
+                }).ToList();
+                foundUser.UserSettings.IsContactEmailShowing = userVm.Settings.IsContactEmailShowing;
+                foundUser.UserSettings.IsContactNumberShowing = userVm.Settings.IsContactNumberShowing;
 
 
-                    await _unitOfWork.Save();
+                await _unitOfWork.Save();
 
-                    serviceResponse.Data = UserMapper.UserVm(foundUser);
+
+                // var updatedUserVm = new UserVm
+                // {
+                //     Id = foundUser.Id,
+                //     Username = foundUser.UserName,
+                //     Email = foundUser.Email,
+                //     PhoneNumber = foundUser.PhoneNumber,
+                //     FullName = foundUser.FullName,
+                //     Profile = new UserProfileVm
+                //     {
+                //         Image = foundUser.UserProfile.Image,
+                //         FirstName = foundUser.UserProfile.FirstName,
+                //         LastName = foundUser.UserProfile.LastName,
+                //         Handicap = foundUser.UserProfile.Handicap
+                //     },
+                //     Settings = new UserSettingsVm
+                //     {
+                //         FavoriteLinks = foundUser.UserSettings.FavoriteLinks.Select(f => new FavoriteLinkVm
+                //         {
+                //             Name = f.Name,
+                //             Link = f.Link
+                //         }).ToList(),
+                //         IsContactNumberShowing = foundUser.UserSettings.IsContactNumberShowing,
+                //         IsContactEmailShowing = foundUser.UserSettings.IsContactEmailShowing
+                //     },
+                // };
+
+
+                serviceResponse.Data = userVm;
             }
             catch (Exception e)
             {

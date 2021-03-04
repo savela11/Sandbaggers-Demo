@@ -20,6 +20,7 @@ namespace Services
             Idea = new IdeaService(_unitOfWork);
             PowerRanking = new PowerRankingService(_unitOfWork);
             EventResult = new EventResultsService(_unitOfWork);
+            Team = new TeamService(_unitOfWork);
         }
 
 
@@ -32,5 +33,6 @@ namespace Services
         public IIdeaService Idea { get; private set; }
         public IPowerRankingService PowerRanking { get; private set; }
         public IEventResultsService EventResult { get; private set; }
+        public ITeamService Team { get; private set; }
     }
 }
