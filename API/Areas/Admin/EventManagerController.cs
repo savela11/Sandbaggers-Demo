@@ -32,6 +32,20 @@ namespace API.Areas.Admin
             return Ok(response.Data);
         }
 
+        [HttpGet]
+        public async Task<ActionResult> EventList()
+        {
+            var response = await _service.Event.Events();
+            if (response.Success == false)
+            {
+                return BadRequest(response);
+            }
+
+            var eventVmListResponse = await _service.Event.EventVmList(response.Data);
+
+            return Ok(eventVmListResponse.Data);
+        }
+
         [HttpPost]
         public async Task<ActionResult> CreateEvent(CreateEventDto createEventDto)
         {

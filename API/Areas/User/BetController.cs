@@ -30,7 +30,15 @@ namespace API.Areas.User
                 return BadRequest(response);
             }
 
-            return Ok(response.Data);
+            var betVmResponse = await _service.Bet.BetVm(response.Data);
+
+            if (betVmResponse.Success == false)
+            {
+                return BadRequest(betVmResponse);
+            }
+
+
+            return Ok(betVmResponse.Data);
         }
 
         [HttpGet]

@@ -140,13 +140,54 @@ namespace Services
                     if (foundTeam == null) continue;
                     var teamMemberIds = teamVm.TeamMembers.Select(t => t.Id).ToList();
                     foundTeam.CaptainId = teamVm.Captain.Id;
+                    if (!teamMemberIds.Contains(teamVm.Captain.Id))
+                    {
+                        teamMemberIds.Add(teamVm.Captain.Id);
+                    }
+
                     foundTeam.Name = teamVm.Name;
                     foundTeam.TeamMemberIds = teamMemberIds;
+                    foundTeam.Color = teamVm.Color;
                     await _unitOfWork.Save();
                 }
 
 
                 serviceResponse.Data = teamVmList;
+            }
+            catch (Exception e)
+            {
+                serviceResponse.Message = e.Message;
+                serviceResponse.Success = false;
+            }
+
+            return serviceResponse;
+        }
+
+        public async Task<ServiceResponse<string>> RemoveTeamCaptain(RemoveTeamCaptainDto removeTeamCaptainDto)
+        {
+            var serviceResponse = new ServiceResponse<string>();
+
+            try
+            {
+                var foundTeam = await _unitOfWork.Team.GetFirstOrDefault(t => t.TeamId == removeTeamCaptainDto.TeamId);
+                if (foundTeam == null)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = $"No team found by id";
+                    return serviceResponse;
+                }
+
+                if (foundTeam.CaptainId != removeTeamCaptainDto.CaptainId)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = "Captain Id does not match removed captain Id";
+                    return serviceResponse;
+                }
+
+                foundTeam.CaptainId = null;
+                await _unitOfWork.Save();
+
+                serviceResponse.Data = "Team Captain Removed";
             }
             catch (Exception e)
             {

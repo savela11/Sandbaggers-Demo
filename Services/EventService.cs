@@ -426,7 +426,7 @@ namespace Services
                     var userToRemove = foundEvent.RegisteredUserIds.Find(userId => userId == foundUser.Id);
                     foundEvent.RegisteredUserIds.Remove(userToRemove);
                     await _unitOfWork.Save();
-                    serviceResponse.Data = $"{foundUser.UserProfile.FirstName} {foundUser.UserProfile.LastName} has been removed from the event";
+                    serviceResponse.Data = $"{foundUser.FullName} has been removed from the event";
                 }
                 else
                 {

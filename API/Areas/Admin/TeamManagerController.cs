@@ -1,7 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models.DTO;
+using Models.ViewModels;
 using Services.Interface;
 
 namespace API.Areas.Admin
@@ -57,6 +59,30 @@ namespace API.Areas.Admin
         public async Task<ActionResult> Team(int eventId)
         {
             var response = await _service.Team.TeamsByEvent(eventId);
+            if (response.Success == false)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response.Data);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> UpdateTeams(List<TeamVm> teamVmList)
+        {
+            var response = await _service.Team.UpdateTeams(teamVmList);
+            if (response.Success == false)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response.Data);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> RemoveTeamCaptain(RemoveTeamCaptainDto removeTeamCaptainDto)
+        {
+            var response = await _service.Team.RemoveTeamCaptain(removeTeamCaptainDto);
             if (response.Success == false)
             {
                 return BadRequest(response);

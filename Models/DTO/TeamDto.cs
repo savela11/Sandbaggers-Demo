@@ -11,4 +11,11 @@
     {
         public int EventId { get; set; }
     }
+
+
+    public class RemoveTeamCaptainDto
+    {
+        public int TeamId { get; set; }
+        public string CaptainId { get; set; }
+    }
 }
