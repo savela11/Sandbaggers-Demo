@@ -19,5 +19,6 @@ namespace Services.Interface
         Task<ServiceResponse<string>> DeleteBet(DeleteBetDto deleteBetDto);
         Task<ServiceResponse<AcceptedByUserVm>> AcceptBet(UserAcceptedBetDto userAcceptedBetDto);
         Task<ServiceResponse<Bet>> UpdateBet(BetVm betDto);
+        Task<ServiceResponse<List<BetVm>>> MyBets(string userId);
     }
 }

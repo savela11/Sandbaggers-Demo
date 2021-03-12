@@ -10,5 +10,6 @@ namespace Services.Interface
     {
         Task<ServiceResponse<List<ContactVm>>> ContactVmList(List<ApplicationUser> users);
         Task<ServiceResponse<List<ApplicationUser>>> Contacts();
+        Task<ServiceResponse<List<ContactVm>>> ContactVmList();
     }
 }

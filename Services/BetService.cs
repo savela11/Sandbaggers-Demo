@@ -135,6 +135,7 @@ namespace Services
 
                 var createdBet = await _unitOfWork.Bet.AddAsync(bet);
 
+                await _unitOfWork.Save();
 
                 serviceResponse.Data = createdBet;
             }
@@ -390,6 +391,36 @@ namespace Services
 
                 await _unitOfWork.Save();
                 serviceResponse.Data = foundBet;
+            }
+            catch (Exception e)
+            {
+                serviceResponse.Message = e.Message;
+                serviceResponse.Success = false;
+            }
+
+            return serviceResponse;
+        }
+
+
+        public async Task<ServiceResponse<List<BetVm>>> MyBets(string userId)
+        {
+            var serviceResponse = new ServiceResponse<List<BetVm>>();
+
+            try
+            {
+                var userBets = await _unitOfWork.Bet.GetAll(b => b.CreatedByUserId == userId);
+
+                var betVmListResponse = await BetVmList(userBets.ToList());
+
+                if (betVmListResponse.Success == false)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = "Not able to get user bets";
+                    return serviceResponse;
+                }
+
+
+                serviceResponse.Data = betVmListResponse.Data;
             }
             catch (Exception e)
             {

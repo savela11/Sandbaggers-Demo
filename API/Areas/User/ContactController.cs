@@ -20,22 +20,16 @@ namespace API.Areas.User
 
 
         [HttpGet]
-        public async Task<ActionResult> List()
+        public async Task<ActionResult> ContactList()
         {
-            var contactResponse = await _service.Contact.Contacts();
-            if (contactResponse.Success == false)
+            var response = await _service.Contact.ContactVmList();
+            if (response.Success == false)
             {
-                return BadRequest(contactResponse);
+                return BadRequest(response);
             }
 
-            var contactVmListResponse = await _service.Contact.ContactVmList(contactResponse.Data);
 
-            if (contactVmListResponse.Success == false)
-            {
-                return BadRequest(contactVmListResponse);
-            }
-
-            return Ok(contactVmListResponse.Data);
+            return Ok(response.Data);
         }
     }
 }

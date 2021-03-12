@@ -37,6 +37,34 @@ namespace Services
             return serviceResponse;
         }
 
+        public async Task<ServiceResponse<List<ContactVm>>> ContactVmList()
+        {
+            var serviceResponse = new ServiceResponse<List<ContactVm>>();
+
+            try
+            {
+                var allUsers = await _unitOfWork.User.GetAll(includeProperties: "UserProfile,UserSettings");
+                var contactVmList = allUsers.Select(u => new ContactVm
+                {
+                    Id = u.Id,
+                    FullName = u.FullName,
+                    PhoneNumber = u.PhoneNumber,
+                    Email = u.Email,
+                    Image = u.UserProfile.Image,
+                    IsContactNumberShowing = u.UserSettings.IsContactNumberShowing,
+                    IsContactEmailShowing = u.UserSettings.IsContactEmailShowing
+                }).ToList();
+                serviceResponse.Data = contactVmList;
+            }
+            catch (Exception e)
+            {
+                serviceResponse.Message = e.Message;
+                serviceResponse.Success = false;
+            }
+
+            return serviceResponse;
+        }
+
         public async Task<ServiceResponse<ContactVm>> ContactVm(ApplicationUser user)
         {
             var serviceResponse = new ServiceResponse<ContactVm>();
@@ -53,6 +81,7 @@ namespace Services
 
                 var contactVm = new ContactVm
                 {
+                    Id = foundUser.Id,
                     FullName = foundUser.FullName,
                     PhoneNumber = foundUser.PhoneNumber,
                     Email = foundUser.Email,

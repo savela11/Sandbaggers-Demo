@@ -121,5 +121,14 @@ namespace API.Areas.User
 
             return Ok(response.Data);
         }
+
+        [HttpGet("{userId}")]
+        public async Task<ActionResult> MyBets(string userId)
+        {
+            var response = await _service.Bet.MyBets(userId);
+            if (response.Success == false) return BadRequest(response);
+
+            return Ok(response.Data);
+        }
     }
 }
