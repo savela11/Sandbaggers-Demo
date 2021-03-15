@@ -42,6 +42,19 @@ namespace API.Areas.User
         }
 
         [HttpGet]
+        [Route("{betId}")]
+        public async Task<ActionResult> BetVmById(int betId)
+        {
+            var response = await _service.Bet.BetVmById(betId);
+            if (response.Success == false)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response.Data);
+        }
+
+        [HttpGet]
         public async Task<ActionResult> ActiveBets()
         {
             var response = await _service.Bet.AllActiveBets();

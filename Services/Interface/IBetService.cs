@@ -11,6 +11,7 @@ namespace Services.Interface
     public interface IBetService
     {
         Task<ServiceResponse<BetVm>> BetVm(Bet bet);
+        Task<ServiceResponse<BetVm>> BetVmById(int betId);
         Task<ServiceResponse<List<BetVm>>> BetVmList(List<Bet> bets);
         Task<ServiceResponse<Bet>> CreateBet(CreateBetDto createBetDto);
         Task<ServiceResponse<Bet>> BetById(int betId);

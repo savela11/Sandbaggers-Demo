@@ -77,11 +77,75 @@ namespace Services
             return serviceResponse;
         }
 
+        public async Task<ServiceResponse<BetVm>> BetVmById(int betId)
+        {
+            var serviceResponse = new ServiceResponse<BetVm>();
+            try
+            {
+                var foundBet = await _unitOfWork.Bet.GetFirstOrDefault(b => b.BetId == betId);
+                if (foundBet == null)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = "No Bet found";
+                    return serviceResponse;
+                }
+
+                var createdByUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == foundBet.CreatedByUserId, includeProperties: "UserProfile");
+
+                if (createdByUser == null)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = "No User found by Id";
+                    return serviceResponse;
+                }
+
+
+                var createdByUserVm = new CreatedByUserVm
+                {
+                    Id = createdByUser.Id,
+                    FullName = createdByUser.FullName,
+                    Image = createdByUser.UserProfile.Image
+                };
+
+                var acceptedByUsers = await _unitOfWork.User.GetAll(u => foundBet.AcceptedByUserIds.Contains(u.Id));
+
+
+                var acceptedByUserVms = acceptedByUsers.Select(u => new AcceptedByUserVm {Id = u.Id, Image = u.UserProfile.Image, FullName = u.FullName}).ToList();
+
+
+                var betVm = new BetVm
+                {
+                    BetId = foundBet.BetId,
+                    Title = foundBet.Title,
+                    Description = foundBet.Description,
+                    Amount = foundBet.Amount,
+                    CreatedBy = createdByUserVm,
+                    CanAcceptNumber = foundBet.CanAcceptNumber,
+                    AcceptedBy = acceptedByUserVms,
+                    CreatedOn = foundBet.CreatedOn,
+                    UpdatedOn = foundBet.UpdatedOn,
+                    IsActive = foundBet.IsActive,
+                    DoesRequirePassCode = foundBet.DoesRequirePassCode
+                };
+
+
+                // var betVm = await BetMapper.BetVm(foundBet);
+                serviceResponse.Data = betVm;
+            }
+            catch (Exception e)
+            {
+                serviceResponse.Message = e.Message;
+                serviceResponse.Success = false;
+            }
+
+            return serviceResponse;
+        }
+
         public async Task<ServiceResponse<List<BetVm>>> BetVmList(List<Bet> bets)
         {
             var serviceResponse = new ServiceResponse<List<BetVm>>();
-
             try
+
             {
                 var betVmList = new List<BetVm>();
                 foreach (var bet in bets)
@@ -102,7 +166,6 @@ namespace Services
             }
 
             return serviceResponse;
-            throw new NotImplementedException();
         }
 
         public async Task<ServiceResponse<Bet>> CreateBet(CreateBetDto createBetDto)
@@ -161,8 +224,6 @@ namespace Services
                     return serviceResponse;
                 }
 
-
-                // var betVm = await BetMapper.BetVm(foundBet);
                 serviceResponse.Data = foundBet;
             }
             catch (Exception e)
@@ -400,7 +461,6 @@ namespace Services
 
             return serviceResponse;
         }
-
 
         public async Task<ServiceResponse<List<BetVm>>> MyBets(string userId)
         {
