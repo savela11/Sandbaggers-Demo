@@ -99,7 +99,7 @@ namespace Services
             {
                 var foundEvents = await _unitOfWork.Event.GetAll(orderBy: evnt => evnt.OrderByDescending(e => e.CreatedOn), includeProperties: "PowerRanking");
                 var eventPowerRankingsList = new List<PowerRankingVm>();
-                foreach (var foundEvent in foundEvents)
+                foreach (var foundEvent in foundEvents.ToList())
                 {
                     var powerRankingVmResponse = await PowerRankingVm(foundEvent);
 

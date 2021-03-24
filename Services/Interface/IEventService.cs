@@ -13,7 +13,7 @@ namespace Services.Interface
         Task<ServiceResponse<List<EventVm>>> EventVmList(List<Event> evnts);
         Task<ServiceResponse<List<Event>>> Events();
 
-        Task<ServiceResponse<Event>> CreateEvent(CreateEventDto createEventDto);
+        Task<ServiceResponse<int>> CreateEvent(CreateEventDto createEventDto);
 
         Task<ServiceResponse<Event>> GetEventById(int id);
 

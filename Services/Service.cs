@@ -21,6 +21,7 @@ namespace Services
             PowerRanking = new PowerRankingService(_unitOfWork);
             EventResult = new EventResultsService(_unitOfWork);
             Team = new TeamService(_unitOfWork);
+            Draft = new DraftService(_unitOfWork);
         }
 
 
@@ -34,5 +35,6 @@ namespace Services
         public IPowerRankingService PowerRanking { get; private set; }
         public IEventResultsService EventResult { get; private set; }
         public ITeamService Team { get; private set; }
+        public IDraftService Draft { get; private set; }
     }
 }

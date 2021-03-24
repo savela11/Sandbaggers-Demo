@@ -12,5 +12,6 @@
         public IPowerRankingService PowerRanking { get; }
         public IEventResultsService EventResult { get; }
         public ITeamService Team { get; }
+        public IDraftService Draft { get; }
     }
 }

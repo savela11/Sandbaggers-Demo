@@ -145,9 +145,9 @@ namespace Services
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<Event>> CreateEvent(CreateEventDto createEventDto)
+        public async Task<ServiceResponse<int>> CreateEvent(CreateEventDto createEventDto)
         {
-            var serviceResponse = new ServiceResponse<Event>();
+            var serviceResponse = new ServiceResponse<int>();
             try
             {
                 // check if event by year or name exists
@@ -205,7 +205,7 @@ namespace Services
                     await _unitOfWork.Save();
 
 
-                    serviceResponse.Data = createdEvent;
+                    serviceResponse.Data = 1;
                 }
                 else
                 {
@@ -274,7 +274,10 @@ namespace Services
 
             try
             {
-                var foundEvent = await _unitOfWork.Event.GetFirstOrDefault(e => e.EventId == sandbaggerEventVm.EventId, includeProperties: "Teams");
+                var foundActiveAndPublishedEvents = await _unitOfWork.Event.GetAll(includeProperties: "Teams");
+                var foundPublishedEventsList = foundActiveAndPublishedEvents.ToList();
+                var foundEvent = foundPublishedEventsList.FirstOrDefault(e => e.EventId == sandbaggerEventVm.EventId);
+                // var foundEvent = await _unitOfWork.Event.GetFirstOrDefault(e => e.EventId == sandbaggerEventVm.EventId, includeProperties: "Teams");
                 if (foundEvent == null)
                 {
                     serviceResponse.Success = false;
@@ -303,23 +306,22 @@ namespace Services
                 //check if there is already an event active or current year
                 if (sandbaggerEventVm.IsPublished || sandbaggerEventVm.IsCurrentYear)
                 {
-                    var activeOrPublished = await _unitOfWork.Event.CheckPublishedOrActive(sandbaggerEventVm.EventId);
+                    var activeNotCurrentEvent = foundPublishedEventsList.FirstOrDefault(e => e.IsPublished && e.EventId != foundEvent.EventId);
 
-                    if (activeOrPublished)
+                    // var activeOrPublished = await _unitOfWork.Event.CheckPublishedOrActive(sandbaggerEventVm.EventId);
+                    if (activeNotCurrentEvent != null)
                     {
-                        serviceResponse.Success = false;
-                        serviceResponse.Message = "There is already an event that is active or set as current year.";
-                        return serviceResponse;
+                        activeNotCurrentEvent.IsCurrentYear = false;
+                        activeNotCurrentEvent.IsPublished = false;
+                        // serviceResponse.Success = false;
+                        // serviceResponse.Message = "There is already an event that is active or set as current year.";
+                        // return serviceResponse;
                     }
 
-                    foundEvent.IsPublished = sandbaggerEventVm.IsPublished;
-                    foundEvent.IsCurrentYear = sandbaggerEventVm.IsCurrentYear;
                 }
-                else
-                {
-                    foundEvent.IsPublished = sandbaggerEventVm.IsPublished;
-                    foundEvent.IsCurrentYear = sandbaggerEventVm.IsCurrentYear;
-                }
+
+                foundEvent.IsPublished = sandbaggerEventVm.IsPublished;
+                foundEvent.IsCurrentYear = sandbaggerEventVm.IsCurrentYear;
 
                 await _unitOfWork.Save();
                 serviceResponse.Data = foundEvent;

@@ -88,7 +88,7 @@ namespace Data.Repository
 
         public async Task RemoveAsync(T entity)
         {
-            dbSet.Remove(entity);
+            await Task.Run(() => dbSet.Remove(entity));
         }
 
         public async Task RemoveNoReturn(int id)
