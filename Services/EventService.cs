@@ -199,6 +199,14 @@ namespace Services
                         Event = createdEvent
                     };
                     await _unitOfWork.PowerRanking.AddNoReturn(powerRanking);
+                    var draft = new Draft
+                    {
+                        Event = createdEvent,
+                        EventId = createdEvent.EventId,
+                        DraftUsers = new List<DraftUser>(),
+                        DraftCaptains = new List<DraftCaptain>()
+                    };
+                    await _unitOfWork.Draft.AddNoReturn(draft);
 
                     createdEvent.EventResults = eventResults;
 
@@ -317,7 +325,6 @@ namespace Services
                         // serviceResponse.Message = "There is already an event that is active or set as current year.";
                         // return serviceResponse;
                     }
-
                 }
 
                 foundEvent.IsPublished = sandbaggerEventVm.IsPublished;

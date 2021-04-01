@@ -35,6 +35,7 @@ namespace Data
             PowerRanking = new PowerRankingRepo(_dbContext);
             Team = new TeamRepo(_dbContext);
             Idea = new IdeaRepo(_dbContext);
+            Draft = new DraftRepo(_dbContext);
         }
 
 
@@ -49,8 +50,8 @@ namespace Data
         public IEventRepo Event { get; private set; }
         public IPowerRankingRepo PowerRanking { get; private set; }
         public ITeamRepo Team { get; private set; }
-
         public IIdeaRepo Idea { get; private set; }
+        public IDraftRepo Draft { get; private set; }
 
         public void Dispose()
         {

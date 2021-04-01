@@ -131,6 +131,30 @@ namespace Data.Migrations
                     b.ToTable("Bets");
                 });
 
+            modelBuilder.Entity("Data.Models.Draft", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<List<DraftCaptain>>("DraftCaptains")
+                        .HasColumnType("jsonb");
+
+                    b.Property<List<DraftUser>>("DraftUsers")
+                        .HasColumnType("jsonb");
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId")
+                        .IsUnique();
+
+                    b.ToTable("Drafts");
+                });
+
             modelBuilder.Entity("Data.Models.Event", b =>
                 {
                     b.Property<int>("EventId")
@@ -479,6 +503,17 @@ namespace Data.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
+            modelBuilder.Entity("Data.Models.Draft", b =>
+                {
+                    b.HasOne("Data.Models.Event", "Event")
+                        .WithOne("Draft")
+                        .HasForeignKey("Data.Models.Draft", "EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+                });
+
             modelBuilder.Entity("Data.Models.EventResults", b =>
                 {
                     b.HasOne("Data.Models.Event", "Event")
@@ -605,6 +640,8 @@ namespace Data.Migrations
 
             modelBuilder.Entity("Data.Models.Event", b =>
                 {
+                    b.Navigation("Draft");
+
                     b.Navigation("EventResults");
 
                     b.Navigation("Gallery");

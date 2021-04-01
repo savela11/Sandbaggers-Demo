@@ -24,9 +24,11 @@ namespace Services
         {
             var serviceResponse = new ServiceResponse<DraftManagerViewData>();
 
+            var errorList = new List<string>();
+
             try
             {
-                var foundEvent = await _unitOfWork.Event.GetFirstOrDefault(e => e.IsCurrentYear, "Teams");
+                var foundEvent = await _unitOfWork.Event.GetFirstOrDefault(e => e.IsCurrentYear, "Teams,Draft");
                 if (foundEvent == null)
                 {
                     serviceResponse.Success = false;
@@ -37,81 +39,139 @@ namespace Services
 
                 var draftManagerViewData = new DraftManagerViewData
                 {
+                    DraftId = foundEvent.Draft.Id,
                     RegisteredUsers = new List<RegisteredUserVm>(),
-                    Teams = new List<TeamVm>()
+                    DraftUsers = new List<DraftUserVm>(),
+                    DraftCaptains = new List<DraftCaptainVm>()
                 };
 
-                if (foundEvent.RegisteredUserIds.Any())
+                // MUST HAVE REGISTERED USERS AND REGISTERED TEAM
+                if (foundEvent.RegisteredUserIds.Any() && foundEvent.Teams.Any())
                 {
                     // var allUsers = await _unitOfWork.User.GetAll(u => foundEvent.RegisteredUserIds.Contains(u.Id), includeProperties: "UserProfile");
                     var allUsers = await _unitOfWork.User.GetAll(includeProperties: "UserProfile");
 
                     var allUsersList = allUsers.ToList();
 
-                    var registeredUsers = allUsersList.Where(u => foundEvent.RegisteredUserIds.Contains(u.Id)).Select(u => new RegisteredUserVm
-                    {
-                        Id = u.Id,
-                        FullName = u.FullName,
-                        Image = u.UserProfile.Image,
-                        Username = u.UserName
-                    }).ToList();
 
-                    if (foundEvent.Teams.Any())
-                    {
-                        foreach (var team in foundEvent.Teams)
-                        {
-                            var teamVm = new TeamVm {Captain = new TeamMemberVm(), Name = team.Name, EventId = team.EventId, TeamId = team.TeamId, Color = team.Color};
-                            if (string.IsNullOrEmpty(team.Name))
-                            {
-                                team.Name = team.TeamId.ToString();
-                            }
+                    var registeredUsers = allUsersList.Where(u => foundEvent.RegisteredUserIds.Contains(u.Id)).ToList();
 
-                            if (!string.IsNullOrEmpty(team.CaptainId))
-                            {
-                                // var foundCaptain = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == team.CaptainId, includeProperties: "UserProfile");
-                                ApplicationUser foundCaptain = allUsersList.FirstOrDefault(u => u.Id == team.CaptainId);
-                                if (foundCaptain != null)
-                                {
-                                    teamVm.Captain.Id = foundCaptain.Id;
-                                    teamVm.Captain.Image = foundCaptain.UserProfile.Image;
-                                    teamVm.Captain.FullName = foundCaptain.FullName;
-                                }
-                            }
 
-                            teamVm.TeamMembers = new List<TeamMemberVm>();
-                            if (team.TeamMemberIds.Count > 0)
-                            {
-                                var teamMembers = allUsersList.Where(u => team.TeamMemberIds.Contains(u.Id)).Select(u => new TeamMemberVm
-                                {
-                                    Id = u.Id,
-                                    Image = u.UserProfile.Image,
-                                    FullName = u.FullName
-                                }).ToList();
+                    HashSet<string> captainIds = new HashSet<string>(foundEvent.Teams.Select(t => t.CaptainId));
+                    HashSet<string> draftCaptIds = new HashSet<string>(foundEvent.Draft.DraftCaptains.Select(c => c.Id));
 
-                                // foreach (var memberId in team.TeamMemberIds)
-                                // {
-                                //     var foundTeamMember = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == memberId, includeProperties: "UserProfile");
-                                //     if (foundTeamMember != null)
-                                //     {
-                                //         teamVm.TeamMembers.Add(new TeamMemberVm
-                                //         {
-                                //             Id = foundTeamMember.Id,
-                                //             Image = foundTeamMember.UserProfile.Image,
-                                //             FullName = foundTeamMember.FullName
-                                //         });
-                                //     }
-                                // }
-                                teamVm.TeamMembers = teamMembers;
-                            }
+                    var captains = registeredUsers.Where(u => captainIds.Contains(u.Id) && draftCaptIds.Contains(u.Id)).ToList();
 
-                            draftManagerViewData.Teams.Add(teamVm);
-                        }
-                    }
 
-                    draftManagerViewData.RegisteredUsers = registeredUsers;
+                    // if (foundEvent.Draft.DraftUsers.Any())
+                    // {
+                    //     HashSet<string> draftUserIds = new HashSet<string>(foundEvent.Draft.DraftUsers.Select(ru => ru.Id));
+                    //     draftManagerViewData.RegisteredUsers = registeredUsers.Where(u => !draftUserIds.Contains(u.Id)).Select(u => new RegisteredUserVm
+                    //     {
+                    //         Id = u.Id,
+                    //         FullName = u.FullName,
+                    //         Image = u.UserProfile.Image,
+                    //         Username = u.UserName
+                    //     }).ToList();
+                    //
+                    //     draftManagerViewData.DraftUsers = foundEvent.Draft.DraftUsers.Select(u => new DraftUserVm
+                    //     {
+                    //         Id = u.Id,
+                    //         FullName = u.FullName,
+                    //         BidAmount = u.BidAmount,
+                    //     }).ToList();
+                    // }
+                    // else
+                    // {
+                    //     draftManagerViewData.RegisteredUsers = registeredUsers.Select(u => new RegisteredUserVm
+                    //     {
+                    //         Id = u.Id,
+                    //         FullName = u.FullName,
+                    //         Image = u.UserProfile.Image,
+                    //         Username = u.UserName
+                    //     }).ToList();
+                    // }
+
+
+                    // foreach (var team in foundEvent.Teams)
+                    // {
+                    //     var teamVm = new TeamVm {Captain = new TeamMemberVm(), Name = team.Name, EventId = team.EventId, TeamId = team.TeamId, Color = team.Color};
+                    //     if (string.IsNullOrEmpty(team.Name))
+                    //     {
+                    //         team.Name = team.TeamId.ToString();
+                    //     }
+                    //
+                    //     if (!string.IsNullOrEmpty(team.CaptainId))
+                    //     {
+                    //         // var foundCaptain = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == team.CaptainId, includeProperties: "UserProfile");
+                    //         ApplicationUser foundCaptain = allUsersList.FirstOrDefault(u => u.Id == team.CaptainId);
+                    //         if (foundCaptain != null)
+                    //         {
+                    //             teamVm.Captain.Id = foundCaptain.Id;
+                    //             teamVm.Captain.Image = foundCaptain.UserProfile.Image;
+                    //             teamVm.Captain.FullName = foundCaptain.FullName;
+                    //         }
+                    //     }
+                    //
+                    //     teamVm.TeamMembers = new List<TeamMemberVm>();
+                    //     if (team.TeamMemberIds.Count > 0)
+                    //     {
+                    //         var teamMembers = allUsersList.Where(u => team.TeamMemberIds.Contains(u.Id)).Select(u => new TeamMemberVm
+                    //         {
+                    //             Id = u.Id,
+                    //             Image = u.UserProfile.Image,
+                    //             FullName = u.FullName
+                    //         }).ToList();
+                    //
+                    //
+                    //         teamVm.TeamMembers = teamMembers;
+                    //     }
+                    //
+                    //     draftManagerViewData.Teams.Add(teamVm);
+                    // }
                 }
 
+                if (foundEvent.Teams.Count < 1) errorList.Add("Create Teams for Event");
+                if(foundEvent.RegisteredUserIds.Count < 1) errorList.Add("Register Users For Event");
+                if (errorList.Count > 0)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Errors = errorList;
+                    return serviceResponse;
+                }
 
+                serviceResponse.Data = draftManagerViewData;
+            }
+            catch (Exception e)
+            {
+                serviceResponse.Message = e.Message;
+                serviceResponse.Success = false;
+            }
+
+            return serviceResponse;
+        }
+
+        public async Task<ServiceResponse<DraftManagerViewData>> EditDraft(DraftManagerViewData draftManagerViewData)
+        {
+            var serviceResponse = new ServiceResponse<DraftManagerViewData>();
+
+            try
+            {
+                var draft = await _unitOfWork.Draft.GetFirstOrDefault(d => d.Id == draftManagerViewData.DraftId);
+                if (draft == null)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = $"No Draft found by Id";
+                    return serviceResponse;
+                }
+
+                draft.DraftUsers = draftManagerViewData.DraftUsers.Select(u => new DraftUser()
+                {
+                    Id = u.Id,
+                    FullName = u.FullName,
+                    BidAmount = u.BidAmount,
+                }).ToList();
+                await _unitOfWork.Save();
                 serviceResponse.Data = draftManagerViewData;
             }
             catch (Exception e)

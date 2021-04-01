@@ -1,6 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Models.DTO;
+using Models.ViewModels.Views;
 using Services.Interface;
 
 namespace API.Areas.Admin
@@ -30,5 +32,19 @@ namespace API.Areas.Admin
 
             return Ok(response.Data);
         }
+
+        [HttpPost]
+        public async Task<ActionResult> EditDraft(DraftManagerViewData draftManagerViewData)
+        {
+            var response = await _service.Draft.EditDraft(draftManagerViewData);
+            if (response.Success == false)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response.Data);
+        }
+
+
     }
 }

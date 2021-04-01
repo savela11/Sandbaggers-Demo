@@ -18,7 +18,7 @@ namespace Data
         IPowerRankingRepo PowerRanking { get; }
         ITeamRepo Team { get; }
         IIdeaRepo Idea { get; }
-
+        IDraftRepo Draft { get; }
 
 
         Task Save();

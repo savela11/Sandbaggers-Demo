@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Data;
 using Data.Models;
+using Microsoft.EntityFrameworkCore;
 using Models.DTO;
 using Models.ViewModels;
 using Services.Interface;
@@ -14,10 +15,12 @@ namespace Services
     public class TeamService : ITeamService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly AppDbContext _dbContext;
 
-        public TeamService(IUnitOfWork unitOfWork)
+        public TeamService(IUnitOfWork unitOfWork, AppDbContext dbContext)
         {
             _unitOfWork = unitOfWork;
+            _dbContext = dbContext;
         }
 
         public async Task<ServiceResponse<List<TeamVm>>> TeamVmList(Event evnt)
@@ -133,22 +136,55 @@ namespace Services
 
             try
             {
+                var allTeams = await _unitOfWork.Team.GetAll();
+                var teamList = allTeams.ToList();
                 foreach (var teamVm in teamVmList)
                 {
-                    var foundTeam = await _unitOfWork.Team.GetFirstOrDefault(t => t.TeamId == teamVm.TeamId);
+                    var foundTeam = teamList.FirstOrDefault(t => t.TeamId == teamVm.TeamId);
 
                     if (foundTeam == null) continue;
                     var teamMemberIds = teamVm.TeamMembers.Select(t => t.Id).ToList();
+                    var previousCaptainId = foundTeam.CaptainId;
                     foundTeam.CaptainId = teamVm.Captain.Id;
                     if (!teamMemberIds.Contains(teamVm.Captain.Id))
                     {
                         teamMemberIds.Add(teamVm.Captain.Id);
                     }
 
+
+
+                    var draft = await _dbContext.Drafts.FirstOrDefaultAsync(d => d.EventId == foundTeam.EventId);
+                    if (draft != null)
+                    {
+                        var usersId = String.IsNullOrEmpty(previousCaptainId) ? teamVm.Captain.Id : previousCaptainId;
+                        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == usersId);
+
+                        if (user != null)
+                        {
+                            if (draft.DraftCaptains.Exists(c => c.Id == user.Id))
+                            {
+                                var captainToRemove = draft.DraftCaptains.FirstOrDefault(c => c.Id == user.Id);
+                                draft.DraftCaptains.Remove(captainToRemove);
+                            }
+                            else
+                            {
+                                var draftCaptain = new DraftCaptain
+                                {
+                                    Id = user.Id,
+                                    FullName = user.FullName,
+                                    Balance = 0
+                                };
+                                draft.DraftCaptains.Add(draftCaptain);
+                            }
+                        }
+
+                        _dbContext.Drafts.Update(draft);
+                    }
+
                     foundTeam.Name = teamVm.Name;
                     foundTeam.TeamMemberIds = teamMemberIds;
                     foundTeam.Color = teamVm.Color;
-                    await _unitOfWork.Save();
+                    await _dbContext.SaveChangesAsync();
                 }
 
 
@@ -169,7 +205,15 @@ namespace Services
 
             try
             {
-                var foundTeam = await _unitOfWork.Team.GetFirstOrDefault(t => t.TeamId == removeTeamCaptainDto.TeamId);
+                var foundEvent = await _unitOfWork.Event.GetFirstOrDefault(e => e.EventId == removeTeamCaptainDto.EventId, includeProperties: "Teams,Draft");
+                if (foundEvent == null)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = $"No Event found with Team Id";
+                    return serviceResponse;
+                }
+
+                var foundTeam = foundEvent.Teams.FirstOrDefault(t => t.TeamId == removeTeamCaptainDto.TeamId);
                 if (foundTeam == null)
                 {
                     serviceResponse.Success = false;
@@ -184,8 +228,17 @@ namespace Services
                     return serviceResponse;
                 }
 
+                var foundCaptain = foundEvent.Draft.DraftCaptains.FirstOrDefault(dc => dc.Id == removeTeamCaptainDto.CaptainId);
+
+                if (foundCaptain != null)
+                {
+                    foundEvent.Draft.DraftCaptains.Remove(foundCaptain);
+                }
+
+                _dbContext.Drafts.Update(foundEvent.Draft);
+
                 foundTeam.CaptainId = null;
-                await _unitOfWork.Save();
+                await _dbContext.SaveChangesAsync();
 
                 serviceResponse.Data = "Team Captain Removed";
             }
@@ -221,7 +274,7 @@ namespace Services
                     return serviceResponse;
                 }
 
-                if (foundTeam.TeamMemberIds.Count > 0)
+                if (foundTeam.TeamMemberIds.Count > 0 && foundTeam.TeamMemberIds[0] != null)
                 {
                     serviceResponse.Message = "Must Remove all Team Members before Removing a team.";
                     serviceResponse.Success = false;

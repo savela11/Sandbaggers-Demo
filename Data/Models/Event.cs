@@ -14,10 +14,6 @@ namespace Data.Models
         [Column(TypeName = "jsonb")] public Location Location { get; set; }
         public List<string> RegisteredUserIds { get; set; } = new List<string>();
         [Column(TypeName = "jsonb")] public List<Itinerary> Itineraries { get; set; }
-        public List<Team> Teams { get; set; } = new List<Team>();
-        public EventResults EventResults { get; set; }
-        public Gallery Gallery { get; set; }
-        public PowerRanking PowerRanking { get; set; }
         public string Year { get; set; }
 
         public int NumberOfTeams { get; set; } = 24;
@@ -25,6 +21,12 @@ namespace Data.Models
         public bool IsPublished { get; set; }
         public DateTime CreatedOn { get; set; }
         public DateTime UpdatedOn { get; set; }
+
+        public List<Team> Teams { get; set; } = new List<Team>();
+        public EventResults EventResults { get; set; }
+        public Gallery Gallery { get; set; }
+        public PowerRanking PowerRanking { get; set; }
+        public Draft Draft {get; set;}
     }
 
 

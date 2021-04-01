@@ -25,7 +25,7 @@ namespace Data
         public DbSet<EventResults> EventResults { get; set; }
         public DbSet<Gallery> Galleries { get; set; }
         public DbSet<PowerRanking> PowerRankings { get; set; }
-
+        public DbSet<Draft> Drafts { get; set; }
         public DbSet<Team> Teams { get; set; }
         public DbSet<Bet> Bets { get; set; }
         public DbSet<Idea> Ideas { get; set; }

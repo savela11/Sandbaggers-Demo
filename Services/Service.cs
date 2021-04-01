@@ -6,10 +6,12 @@ namespace Services
     public class Service : IService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly AppDbContext _dbContext;
 
-        public Service(IUnitOfWork unitOfWork)
+        public Service(IUnitOfWork unitOfWork, AppDbContext dbContext)
         {
             _unitOfWork = unitOfWork;
+            _dbContext = dbContext;
 
             User = new UserService(_unitOfWork);
             Bet = new BetService(_unitOfWork);
@@ -20,7 +22,7 @@ namespace Services
             Idea = new IdeaService(_unitOfWork);
             PowerRanking = new PowerRankingService(_unitOfWork);
             EventResult = new EventResultsService(_unitOfWork);
-            Team = new TeamService(_unitOfWork);
+            Team = new TeamService(_unitOfWork, _dbContext);
             Draft = new DraftService(_unitOfWork);
         }
 
