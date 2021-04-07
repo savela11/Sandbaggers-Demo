@@ -144,42 +144,7 @@ namespace Services
 
                     if (foundTeam == null) continue;
                     var teamMemberIds = teamVm.TeamMembers.Select(t => t.Id).ToList();
-                    var previousCaptainId = foundTeam.CaptainId;
-                    foundTeam.CaptainId = teamVm.Captain.Id;
-                    if (!teamMemberIds.Contains(teamVm.Captain.Id))
-                    {
-                        teamMemberIds.Add(teamVm.Captain.Id);
-                    }
 
-
-
-                    var draft = await _dbContext.Drafts.FirstOrDefaultAsync(d => d.EventId == foundTeam.EventId);
-                    if (draft != null)
-                    {
-                        var usersId = String.IsNullOrEmpty(previousCaptainId) ? teamVm.Captain.Id : previousCaptainId;
-                        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == usersId);
-
-                        if (user != null)
-                        {
-                            if (draft.DraftCaptains.Exists(c => c.Id == user.Id))
-                            {
-                                var captainToRemove = draft.DraftCaptains.FirstOrDefault(c => c.Id == user.Id);
-                                draft.DraftCaptains.Remove(captainToRemove);
-                            }
-                            else
-                            {
-                                var draftCaptain = new DraftCaptain
-                                {
-                                    Id = user.Id,
-                                    FullName = user.FullName,
-                                    Balance = 0
-                                };
-                                draft.DraftCaptains.Add(draftCaptain);
-                            }
-                        }
-
-                        _dbContext.Drafts.Update(draft);
-                    }
 
                     foundTeam.Name = teamVm.Name;
                     foundTeam.TeamMemberIds = teamMemberIds;
@@ -189,6 +154,82 @@ namespace Services
 
 
                 serviceResponse.Data = teamVmList;
+            }
+            catch (Exception e)
+            {
+                serviceResponse.Message = e.Message;
+                serviceResponse.Success = false;
+            }
+
+            return serviceResponse;
+        }
+
+        public async Task<ServiceResponse<TeamMemberVm>> AddTeamCaptain(AddTeamCaptainDto addTeamCaptainDto)
+        {
+            var serviceResponse = new ServiceResponse<TeamMemberVm>();
+
+            try
+            {
+                var foundEvent = await _dbContext.Events.Include(e => e.Draft).Include(e => e.Teams).FirstOrDefaultAsync(e => e.EventId == addTeamCaptainDto.EventId);
+                if (foundEvent == null)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = $"No Event found with Teams";
+                    return serviceResponse;
+                }
+
+                var foundUser = await _dbContext.Users.Include(u => u.UserProfile).FirstOrDefaultAsync(u => u.Id == addTeamCaptainDto.CaptainId);
+                if (foundUser == null)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = $"No Team Captain found by Id";
+                    return serviceResponse;
+                }
+
+
+                var foundTeam = foundEvent.Teams.FirstOrDefault(t => t.TeamId == addTeamCaptainDto.TeamId);
+                if (foundTeam == null)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = $"No Team found by TeamId";
+                    return serviceResponse;
+                }
+
+
+                //MUST BE A TEAM MEMBER TO BECOME CAPTAIN
+                if (!foundTeam.TeamMemberIds.Contains(foundUser.Id))
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = "Cannot Add Captain unless already a team member";
+                    return serviceResponse;
+                }
+
+                foundTeam.CaptainId = foundUser.Id;
+                var draftCaptain = new DraftCaptain
+                {
+                    Id = foundUser.Id,
+                    FullName = foundUser.FullName,
+                    Balance = 0
+                };
+
+                if (!foundEvent.Draft.DraftCaptains.Exists(c => c.Id == foundTeam.CaptainId))
+                {
+                    foundEvent.Draft.DraftCaptains.Add(draftCaptain);
+                }
+
+                _dbContext.Drafts.Update(foundEvent.Draft);
+
+                _dbContext.Events.Update(foundEvent);
+
+                await _dbContext.SaveChangesAsync();
+
+                var teamMemberVm = new TeamMemberVm
+                {
+                    Id = foundUser.Id,
+                    FullName = foundUser.FullName,
+                    Image = foundUser.UserProfile.Image
+                };
+                serviceResponse.Data = teamMemberVm;
             }
             catch (Exception e)
             {
@@ -235,9 +276,11 @@ namespace Services
                     foundEvent.Draft.DraftCaptains.Remove(foundCaptain);
                 }
 
-                _dbContext.Drafts.Update(foundEvent.Draft);
-
                 foundTeam.CaptainId = null;
+
+                _dbContext.Drafts.Update(foundEvent.Draft);
+                _dbContext.Events.Update(foundEvent);
+
                 await _dbContext.SaveChangesAsync();
 
                 serviceResponse.Data = "Team Captain Removed";

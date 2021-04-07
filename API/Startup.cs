@@ -41,6 +41,7 @@ namespace API
                 });
             });
             services.AddDbContext<AppDbContext>(options => options.UseNpgsql(Configuration.GetConnectionString("PGSQLConnection")));
+            // services.AddDbContext<AppDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             services.Repositories();
             services.Services();

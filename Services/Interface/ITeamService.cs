@@ -12,14 +12,13 @@ namespace Services.Interface
     {
         Task<ServiceResponse<List<TeamVm>>> TeamsByEvent(int eventId);
 
-
         Task<ServiceResponse<Event>> RemoveTeamFromEvent(RemoveTeamFromEventDto removeTeamFromEventDto);
 
         Task<ServiceResponse<TeamVm>> CreateTeamForEvent(CreateTeamForEventDto createTeamForEventDto);
 
         Task<ServiceResponse<List<TeamVm>>> UpdateTeams(List<TeamVm> teamVmList);
         Task<ServiceResponse<string>> RemoveTeamCaptain(RemoveTeamCaptainDto removeTeamCaptainDto);
-
+        Task<ServiceResponse<TeamMemberVm>> AddTeamCaptain(AddTeamCaptainDto addTeamCaptainDto);
 
 
 

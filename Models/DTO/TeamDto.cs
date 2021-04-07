@@ -12,6 +12,12 @@
         public int EventId { get; set; }
     }
 
+    public class AddTeamCaptainDto
+    {
+        public int EventId { get; set; }
+        public int TeamId { get; set; }
+        public string CaptainId { get; set; }
+    }
 
     public class RemoveTeamCaptainDto
     {

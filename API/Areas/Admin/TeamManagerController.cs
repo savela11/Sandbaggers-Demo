@@ -90,5 +90,18 @@ namespace API.Areas.Admin
 
             return Ok(response.Data);
         }
+
+
+        [HttpPost]
+        public async Task<ActionResult> AddTeamCaptain(AddTeamCaptainDto addTeamCaptainDto)
+        {
+            var response = await _service.Team.AddTeamCaptain(addTeamCaptainDto);
+            if (response.Success == false)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response.Data);
+        }
     }
 }
