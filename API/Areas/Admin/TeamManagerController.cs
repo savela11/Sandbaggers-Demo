@@ -80,7 +80,7 @@ namespace API.Areas.Admin
         }
 
         [HttpPost]
-        public async Task<ActionResult> RemoveTeamCaptain(RemoveTeamCaptainDto removeTeamCaptainDto)
+        public async Task<ActionResult> RemoveTeamCaptain(AddOrRemoveTeamCaptainDto removeTeamCaptainDto)
         {
             var response = await _service.Team.RemoveTeamCaptain(removeTeamCaptainDto);
             if (response.Success == false)
@@ -91,11 +91,10 @@ namespace API.Areas.Admin
             return Ok(response.Data);
         }
 
-
         [HttpPost]
-        public async Task<ActionResult> AddTeamCaptain(AddTeamCaptainDto addTeamCaptainDto)
+        public async Task<ActionResult> AddTeamCaptain(AddOrRemoveTeamCaptainDto addTeamCaptain)
         {
-            var response = await _service.Team.AddTeamCaptain(addTeamCaptainDto);
+            var response = await _service.Team.AddTeamCaptain(addTeamCaptain);
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -103,5 +102,7 @@ namespace API.Areas.Admin
 
             return Ok(response.Data);
         }
+
+
     }
 }

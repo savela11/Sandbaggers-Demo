@@ -17,8 +17,8 @@ namespace Services.Interface
         Task<ServiceResponse<TeamVm>> CreateTeamForEvent(CreateTeamForEventDto createTeamForEventDto);
 
         Task<ServiceResponse<List<TeamVm>>> UpdateTeams(List<TeamVm> teamVmList);
-        Task<ServiceResponse<string>> RemoveTeamCaptain(RemoveTeamCaptainDto removeTeamCaptainDto);
-        Task<ServiceResponse<TeamMemberVm>> AddTeamCaptain(AddTeamCaptainDto addTeamCaptainDto);
+        Task<ServiceResponse<string>> RemoveTeamCaptain(AddOrRemoveTeamCaptainDto removeTeamCaptainDto);
+        Task<ServiceResponse<TeamMemberVm>> AddTeamCaptain(AddOrRemoveTeamCaptainDto addTeamCaptainDto);
 
 
 

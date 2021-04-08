@@ -115,7 +115,6 @@ namespace Services
 
                     serviceResponse.Data = teamVmListResponse.Data;
                 }
-
                 else
                 {
                     serviceResponse.Data = new List<TeamVm>();
@@ -145,13 +144,18 @@ namespace Services
                     if (foundTeam == null) continue;
                     var teamMemberIds = teamVm.TeamMembers.Select(t => t.Id).ToList();
 
+                    if (!teamMemberIds.Contains(foundTeam.CaptainId) && foundTeam.TeamMemberIds.Contains(foundTeam.CaptainId))
+                    {
+                        serviceResponse.Success = false;
+                        serviceResponse.Message = "Remove Team Member from Captain first before removing from Team";
+                        return serviceResponse;
+                    }
 
                     foundTeam.Name = teamVm.Name;
                     foundTeam.TeamMemberIds = teamMemberIds;
                     foundTeam.Color = teamVm.Color;
                     await _dbContext.SaveChangesAsync();
                 }
-
 
                 serviceResponse.Data = teamVmList;
             }
@@ -164,7 +168,7 @@ namespace Services
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<TeamMemberVm>> AddTeamCaptain(AddTeamCaptainDto addTeamCaptainDto)
+        public async Task<ServiceResponse<TeamMemberVm>> AddTeamCaptain(AddOrRemoveTeamCaptainDto addTeamCaptainDto)
         {
             var serviceResponse = new ServiceResponse<TeamMemberVm>();
 
@@ -186,7 +190,6 @@ namespace Services
                     return serviceResponse;
                 }
 
-
                 var foundTeam = foundEvent.Teams.FirstOrDefault(t => t.TeamId == addTeamCaptainDto.TeamId);
                 if (foundTeam == null)
                 {
@@ -194,7 +197,6 @@ namespace Services
                     serviceResponse.Message = $"No Team found by TeamId";
                     return serviceResponse;
                 }
-
 
                 //MUST BE A TEAM MEMBER TO BECOME CAPTAIN
                 if (!foundTeam.TeamMemberIds.Contains(foundUser.Id))
@@ -240,7 +242,7 @@ namespace Services
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<string>> RemoveTeamCaptain(RemoveTeamCaptainDto removeTeamCaptainDto)
+        public async Task<ServiceResponse<string>> RemoveTeamCaptain(AddOrRemoveTeamCaptainDto removeTeamCaptainDto)
         {
             var serviceResponse = new ServiceResponse<string>();
 
@@ -327,7 +329,6 @@ namespace Services
                 foundEvent.Teams.Remove(foundTeam);
                 await _unitOfWork.Save();
 
-
                 serviceResponse.Data = foundEvent;
             }
             catch (Exception e)
@@ -353,7 +354,6 @@ namespace Services
                     return serviceResponse;
                 }
 
-
                 var team = new Team
                 {
                     Event = foundEvent,
@@ -363,7 +363,6 @@ namespace Services
                     TeamMemberIds = new List<string>(),
                     Color = "Red"
                 };
-
 
                 var createdTeam = await _unitOfWork.Team.AddAsync(team);
 
@@ -377,7 +376,6 @@ namespace Services
                     Captain = new TeamMemberVm(),
                     TeamMembers = new List<TeamMemberVm>()
                 };
-
 
                 serviceResponse.Data = teamVm;
             }
