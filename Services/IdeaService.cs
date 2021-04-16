@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Data;
 using Data.Models;
+using Microsoft.EntityFrameworkCore;
 using Models.DTO;
 using Models.ViewModels;
 using Services.Interface;
@@ -14,11 +16,11 @@ namespace Services
 {
     public class IdeaService : IIdeaService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly AppDbContext _dbContext;
 
-        public IdeaService(IUnitOfWork unitOfWork)
+        public IdeaService(AppDbContext dbContext)
         {
-            _unitOfWork = unitOfWork;
+            _dbContext = dbContext;
         }
 
 
@@ -28,8 +30,8 @@ namespace Services
 
             try
             {
-                var ideas = await _unitOfWork.Idea.GetAll();
-                var allUsers = await _unitOfWork.User.GetAll(includeProperties: "UserProfile");
+                var ideas = await _dbContext.Ideas.ToListAsync();
+                var allUsers = await _dbContext.Users.Include(u => u.UserProfile).ToListAsync();
 
                 var ideaVmList = ideas.Select(i => new IdeaVm
                 {
@@ -45,7 +47,6 @@ namespace Services
                     CreatedOn = i.CreatedOn,
                     UpdatedOn = i.UpdatedOn
                 }).ToList();
-
                 serviceResponse.Data = ideaVmList;
             }
             catch (Exception e)
@@ -63,7 +64,7 @@ namespace Services
 
             try
             {
-                var foundIdea = await _unitOfWork.Idea.GetFirstOrDefault(i => i.Id == getIdeaDto.IdeaId);
+                var foundIdea = await _dbContext.Ideas.FirstOrDefaultAsync(i => i.Id == getIdeaDto.IdeaId);
                 if (foundIdea == null)
                 {
                     serviceResponse.Success = false;
@@ -71,7 +72,8 @@ namespace Services
                     return serviceResponse;
                 }
 
-                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == getIdeaDto.UserId, includeProperties: "UserProfile");
+                var foundUser = await _dbContext.Users.Include(u => u.UserProfile).FirstOrDefaultAsync(u => u.Id == getIdeaDto.UserId);
+
                 if (foundUser == null)
                 {
                     serviceResponse.Success = false;
@@ -120,43 +122,45 @@ namespace Services
 
             try
             {
-                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == addIdeaDto.UserId, "UserProfile");
+                var foundUser = await _dbContext.Users.Include(u => u.UserProfile).FirstOrDefaultAsync(u => u.Id == addIdeaDto.UserId);
 
                 if (foundUser == null)
                 {
                     serviceResponse.Success = false;
                     serviceResponse.Message = "No User found to creat idea";
+                    return serviceResponse;
                 }
-                else
+
+                var idea = new Idea
                 {
-                    var idea = new Idea
-                    {
-                        Title = addIdeaDto.Title,
-                        Description = addIdeaDto.Description,
-                        CreatedByUserId = foundUser.Id,
-                        CreatedOn = DateTime.UtcNow,
-                        UpdatedOn = DateTime.UtcNow
-                    };
+                    Title = addIdeaDto.Title,
+                    Description = addIdeaDto.Description,
+                    CreatedByUserId = foundUser.Id,
+                    CreatedOn = DateTime.UtcNow,
+                    UpdatedOn = DateTime.UtcNow
+                };
 
-                    var createdIdea = await _unitOfWork.Idea.AddAsync(idea);
-                    await _unitOfWork.Save();
-                    var ideaVm = new IdeaVm
-                    {
-                        Id = createdIdea.Id,
-                        Title = createdIdea.Title,
-                        Description = createdIdea.Description,
-                        CreatedBy = new CreatedByUserVm
-                        {
-                            Id = foundUser.Id,
-                            FullName = foundUser.FullName,
-                            Image = foundUser.UserProfile.Image
-                        },
-                        CreatedOn = createdIdea.CreatedOn,
-                        UpdatedOn = createdIdea.UpdatedOn
-                    };
+                var createdIdea = await _dbContext.Ideas.AddAsync(idea);
 
-                    serviceResponse.Data = ideaVm;
-                }
+
+                await _dbContext.SaveChangesAsync();
+
+                var ideaVm = new IdeaVm
+                {
+                    Id = idea.Id,
+                    Title = idea.Title,
+                    Description = idea.Description,
+                    CreatedBy = new CreatedByUserVm
+                    {
+                        Id = foundUser.Id,
+                        FullName = foundUser.FullName,
+                        Image = foundUser.UserProfile.Image
+                    },
+                    CreatedOn = idea.CreatedOn,
+                    UpdatedOn = idea.UpdatedOn
+                };
+
+                serviceResponse.Data = ideaVm;
             }
             catch (Exception e)
             {
@@ -173,7 +177,7 @@ namespace Services
 
             try
             {
-                var foundIdea = await _unitOfWork.Idea.GetFirstOrDefault(i => i.Id == id);
+                var foundIdea = await _dbContext.Ideas.FirstOrDefaultAsync(i => i.Id == id);
                 if (foundIdea == null)
                 {
                     serviceResponse.Success = false;
@@ -181,7 +185,8 @@ namespace Services
                     return serviceResponse;
                 }
 
-                await _unitOfWork.Idea.RemoveAsync(foundIdea.Id);
+                _dbContext.Ideas.Remove(foundIdea);
+                await _dbContext.SaveChangesAsync();
                 serviceResponse.Data = "Idea removed.";
             }
             catch (Exception e)
@@ -199,7 +204,7 @@ namespace Services
 
             try
             {
-                var foundIdea = await _unitOfWork.Idea.GetFirstOrDefault(i => i.Id == ideaVm.Id);
+                var foundIdea = await _dbContext.Ideas.FirstOrDefaultAsync(i => i.Id == ideaVm.Id);
                 if (foundIdea == null)
                 {
                     serviceResponse.Success = false;
@@ -211,7 +216,8 @@ namespace Services
                     foundIdea.Title = ideaVm.Title;
                     foundIdea.UpdatedOn = DateTime.Now;
 
-                    await _unitOfWork.Save();
+                    _dbContext.Ideas.Update(foundIdea);
+                    await _dbContext.SaveChangesAsync();
                     serviceResponse.Data = ideaVm;
                 }
             }

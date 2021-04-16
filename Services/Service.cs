@@ -19,7 +19,7 @@ namespace Services
             Event = new EventService(_unitOfWork);
             Contact = new ContactService(_unitOfWork);
             Gallery = new GalleryService(_unitOfWork);
-            Idea = new IdeaService(_unitOfWork);
+            Idea = new IdeaService(_dbContext);
             PowerRanking = new PowerRankingService(_unitOfWork);
             EventResult = new EventResultsService(_unitOfWork);
             Team = new TeamService(_unitOfWork, _dbContext);
