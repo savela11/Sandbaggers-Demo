@@ -69,7 +69,6 @@ namespace API
             var appSettings = appSettingsSection.Get<AppSettingsExtension>();
             services.ConfigureJwtAuthentication(appSettings.Secret);
             services.AddControllers();
-            services.AddSwaggerGen();
 
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "API", Version = "v1"}); });
         }
@@ -80,7 +79,6 @@ namespace API
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1"));
             }
 

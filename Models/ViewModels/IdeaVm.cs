@@ -8,7 +8,16 @@ namespace Models.ViewModels
         public string Title { get; set; }
         public string Description { get; set; }
         public CreatedByUserVm CreatedBy { get; set; }
-        public DateTime CreatedOn { get; set; }
+
+        private DateTime _dateValue;
+
+        public string CreatedOn
+        {
+            // get { return _dateValue.ToString("MM/dd/yyyy"); }
+            get { return _dateValue.ToString("F"); }
+            set { DateTime.TryParse(value, out _dateValue); }
+            // set { DateTime.Parse(value); }
+        }
 
         public DateTime UpdatedOn { get; set; }
     }

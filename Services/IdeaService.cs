@@ -44,7 +44,7 @@ namespace Services
                         FullName = u.FullName,
                         Image = u.UserProfile.Image
                     }).FirstOrDefault(u => u.Id == i.CreatedByUserId),
-                    CreatedOn = i.CreatedOn,
+                    CreatedOn = i.CreatedOn.ToString(),
                     UpdatedOn = i.UpdatedOn
                 }).ToList();
                 serviceResponse.Data = ideaVmList;
@@ -101,7 +101,7 @@ namespace Services
                         FullName = foundUser.FullName,
                         Image = foundUser.UserProfile.Image
                     },
-                    CreatedOn = foundIdea.CreatedOn,
+                    CreatedOn = foundIdea.CreatedOn.ToString(),
                     UpdatedOn = foundIdea.UpdatedOn
                 };
 
@@ -156,7 +156,7 @@ namespace Services
                         FullName = foundUser.FullName,
                         Image = foundUser.UserProfile.Image
                     },
-                    CreatedOn = idea.CreatedOn,
+                    CreatedOn = idea.CreatedOn.ToString(),
                     UpdatedOn = idea.UpdatedOn
                 };
 
