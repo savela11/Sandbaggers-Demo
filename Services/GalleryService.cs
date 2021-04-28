@@ -163,7 +163,7 @@ namespace Services
                 {
                     Image = addGalleryImgDto.Image,
                     Comments = new List<GalleryImageComment>(),
-                    CreatedOn = DateTime.UtcNow,
+                    CreatedOn = DateTime.Now,
                     CreatedByUserId = foundCreatedByUser.Id,
                     LikedByUserIds = new List<string>()
                 };

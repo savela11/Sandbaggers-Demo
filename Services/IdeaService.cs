@@ -136,8 +136,8 @@ namespace Services
                     Title = addIdeaDto.Title,
                     Description = addIdeaDto.Description,
                     CreatedByUserId = foundUser.Id,
-                    CreatedOn = DateTime.UtcNow,
-                    UpdatedOn = DateTime.UtcNow
+                    CreatedOn = DateTime.Now,
+                    UpdatedOn = DateTime.Now
                 };
 
                 var createdIdea = await _dbContext.Ideas.AddAsync(idea);

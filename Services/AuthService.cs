@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Data;
 using Data.Models;
@@ -79,7 +80,7 @@ namespace Services
                         User = newUser,
                         Handicap = 0,
                         Image = "https://sbassets.blob.core.windows.net/default/defaultProfileImg.svg",
-                        CreatedOn = DateTime.UtcNow,
+                        CreatedOn = DateTime.Now,
                     };
 
 
@@ -102,7 +103,7 @@ namespace Services
                             Name = "Contacts",
                         }
                     };
-                    var newSettings = new UserSettings {UserId = newUser.Id, FavoriteLinks = favoriteLinks};
+                    var newSettings = new UserSettings {UserId = newUser.Id, FavoriteLinks = JsonSerializer.Serialize(favoriteLinks)};
                     newUser.UserProfile = newProfile;
                     newUser.UserSettings = newSettings;
 
@@ -193,8 +194,15 @@ namespace Services
                 if (signInResult.Succeeded)
                 {
                     var userRoles = await _unitOfWork.UserManager.UserRoles(foundUser);
-                    var token =  AuthenticateUser(foundUser, userRoles);
+                    var token = AuthenticateUser(foundUser, userRoles);
+                    List<FavoriteLinkVm> favoriteLinkVms = new List<FavoriteLinkVm>();
+                    if (!String.IsNullOrEmpty(foundUser.UserSettings.FavoriteLinks))
+                    {
+                        favoriteLinkVms = JsonSerializer.Deserialize<List<FavoriteLinkVm>>(foundUser.UserSettings.FavoriteLinks);
+                    }
+
                     var loggedInUserVm = new LoggedInUserVm
+
                     {
                         Id = foundUser.Id,
                         Username = foundUser.UserName,
@@ -203,7 +211,7 @@ namespace Services
 
                         Settings = new UserSettingsVm
                         {
-                            FavoriteLinks = foundUser.UserSettings.FavoriteLinks.Select(l => new FavoriteLinkVm {Link = l.Link, Name = l.Name}).ToList(),
+                            FavoriteLinks = favoriteLinkVms,
                             IsContactEmailShowing = foundUser.UserSettings.IsContactEmailShowing,
                             IsContactNumberShowing = foundUser.UserSettings.IsContactNumberShowing
                         },
@@ -247,7 +255,7 @@ namespace Services
         }
 
 
-        private  string AuthenticateUser(ApplicationUser user, IEnumerable<string> userRoles)
+        private string AuthenticateUser(ApplicationUser user, IEnumerable<string> userRoles)
         {
             if (user == null)
             {
@@ -265,8 +273,8 @@ namespace Services
                 }),
                 // Issuer = api website that issued the token
                 // Audience - who the token is supposed to be read by
-                Expires = DateTime.UtcNow.AddDays(1),
-                // Expires = DateTime.UtcNow.AddSeconds(10),
+                Expires = DateTime.Now.AddDays(1),
+                // Expires = DateTime.Now.AddSeconds(10),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature)
             };
@@ -284,49 +292,49 @@ namespace Services
 
 
         // OLD
-          // private async Task<string> AuthenticateUser(ApplicationUser user, ICollection<string> userRoles)
-          //       {
-          //           if (user == null)
-          //           {
-          //               return null;
-          //           }
-          //
-          //           var role = userRoles.Contains("Admin") ? "Admin" : "User";
-          //           var userClaims = await _unitOfWork.UserManager.GetClaims(user);
-          //           var tokenHandler = new JwtSecurityTokenHandler();
-          //           var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
-          //           var tokenDescriptor = new SecurityTokenDescriptor
-          //           {
-          //               Subject = new ClaimsIdentity(new[]
-          //               {
-          //                   // new Claim(ClaimTypes.Role, role),
-          //                   // new Claim(userClaims[0].Type, userClaims[0].Value),
-          //                   new Claim(ClaimTypes.Name, user.Id),
-          //                   // new Claim(ClaimsRole, "Admin"),
-          //                   // new Claim("TestClaim", "Test"),
-          //                   // new Claim(ClaimsRole, "Admin")
-          //
-          //                   // new Claim(ClaimTypes.Role, roleBuilder.ToString()),
-          //               }),
-          //
-          //               // Issuer = api website that issued the token
-          //               // Audience - who the token is supposed to be read by
-          //               Expires = DateTime.UtcNow.AddDays(1),
-          //               // Expires = DateTime.UtcNow.AddSeconds(10),
-          //               SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
-          //                   SecurityAlgorithms.HmacSha256Signature)
-          //           };
-          //
-          //
-          //           foreach (var userRole in userRoles)
-          //           {
-          //               tokenDescriptor.Subject.AddClaim(new Claim(ClaimTypes.Role, userRole));
-          //           }
-          //
-          //           var token = tokenHandler.CreateToken(tokenDescriptor);
-          //           var userToken = tokenHandler.WriteToken(token);
-          //
-          //           return userToken;
-          //       }
+        // private async Task<string> AuthenticateUser(ApplicationUser user, ICollection<string> userRoles)
+        //       {
+        //           if (user == null)
+        //           {
+        //               return null;
+        //           }
+        //
+        //           var role = userRoles.Contains("Admin") ? "Admin" : "User";
+        //           var userClaims = await _unitOfWork.UserManager.GetClaims(user);
+        //           var tokenHandler = new JwtSecurityTokenHandler();
+        //           var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
+        //           var tokenDescriptor = new SecurityTokenDescriptor
+        //           {
+        //               Subject = new ClaimsIdentity(new[]
+        //               {
+        //                   // new Claim(ClaimTypes.Role, role),
+        //                   // new Claim(userClaims[0].Type, userClaims[0].Value),
+        //                   new Claim(ClaimTypes.Name, user.Id),
+        //                   // new Claim(ClaimsRole, "Admin"),
+        //                   // new Claim("TestClaim", "Test"),
+        //                   // new Claim(ClaimsRole, "Admin")
+        //
+        //                   // new Claim(ClaimTypes.Role, roleBuilder.ToString()),
+        //               }),
+        //
+        //               // Issuer = api website that issued the token
+        //               // Audience - who the token is supposed to be read by
+        //               Expires = DateTime.Now.AddDays(1),
+        //               // Expires = DateTime.Now.AddSeconds(10),
+        //               SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
+        //                   SecurityAlgorithms.HmacSha256Signature)
+        //           };
+        //
+        //
+        //           foreach (var userRole in userRoles)
+        //           {
+        //               tokenDescriptor.Subject.AddClaim(new Claim(ClaimTypes.Role, userRole));
+        //           }
+        //
+        //           var token = tokenHandler.CreateToken(tokenDescriptor);
+        //           var userToken = tokenHandler.WriteToken(token);
+        //
+        //           return userToken;
+        //       }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Data;
 using Data.Models;
@@ -40,48 +42,15 @@ namespace Services
                 foundUser.UserProfile.FirstName = userVm.Profile.FirstName;
                 foundUser.UserProfile.LastName = userVm.Profile.LastName;
                 foundUser.UserProfile.Image = userVm.Profile.Image;
-                foundUser.UserProfile.UpdatedOn = DateTime.UtcNow;
+                foundUser.UserProfile.UpdatedOn = DateTime.Now;
 
 
                 // Settings
-                foundUser.UserSettings.FavoriteLinks = userVm.Settings.FavoriteLinks.Select(s => new FavoriteLink
-                {
-                    Name = s.Name,
-                    Link = s.Link
-                }).ToList();
+                foundUser.UserSettings.FavoriteLinks = JsonSerializer.Serialize(userVm.Settings.FavoriteLinks);
                 foundUser.UserSettings.IsContactEmailShowing = userVm.Settings.IsContactEmailShowing;
                 foundUser.UserSettings.IsContactNumberShowing = userVm.Settings.IsContactNumberShowing;
 
-
                 await _unitOfWork.Save();
-
-
-                // var updatedUserVm = new UserVm
-                // {
-                //     Id = foundUser.Id,
-                //     Username = foundUser.UserName,
-                //     Email = foundUser.Email,
-                //     PhoneNumber = foundUser.PhoneNumber,
-                //     FullName = foundUser.FullName,
-                //     Profile = new UserProfileVm
-                //     {
-                //         Image = foundUser.UserProfile.Image,
-                //         FirstName = foundUser.UserProfile.FirstName,
-                //         LastName = foundUser.UserProfile.LastName,
-                //         Handicap = foundUser.UserProfile.Handicap
-                //     },
-                //     Settings = new UserSettingsVm
-                //     {
-                //         FavoriteLinks = foundUser.UserSettings.FavoriteLinks.Select(f => new FavoriteLinkVm
-                //         {
-                //             Name = f.Name,
-                //             Link = f.Link
-                //         }).ToList(),
-                //         IsContactNumberShowing = foundUser.UserSettings.IsContactNumberShowing,
-                //         IsContactEmailShowing = foundUser.UserSettings.IsContactEmailShowing
-                //     },
-                // };
-
 
                 serviceResponse.Data = userVm;
             }
@@ -94,38 +63,6 @@ namespace Services
             return serviceResponse;
         }
 
-        // public async Task<ServiceResponse<UserProfileViewData>> UserProfile(string userId)
-        // {
-        //     var serviceResponse = new ServiceResponse<UserProfileViewData>();
-        //
-        //     try
-        //     {
-        //         var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == userId, includeProperties: "UserProfile,UserSettings");
-        //
-        //         if (foundUser == null)
-        //         {
-        //             serviceResponse.Success = false;
-        //             serviceResponse.Message = "No User Found by id";
-        //             return serviceResponse;
-        //         }
-        //
-        //
-        //         var userBets = await _unitOfWork.Bet.GetAll(b => b.CreatedByUserId == userId);
-        //
-        //         serviceResponse.Data = new UserProfileViewData
-        //         {
-        //             UserVm = UserMapper.UserVm(foundUser),
-        //             Bets = await BetMapper.BetVmList(userBets)
-        //         };
-        //     }
-        //     catch (Exception e)
-        //     {
-        //         serviceResponse.Message = e.Message;
-        //         serviceResponse.Success = false;
-        //     }
-        //
-        //     return serviceResponse;
-        // }
 
         public async Task<ServiceResponse<string>> UpdateProfileImage(string userId, string profileImage)
         {
@@ -182,7 +119,7 @@ namespace Services
         //         foundBet.AcceptedByUserIds = betVm.AcceptedBy.Select(u => u.Id).ToList();
         //         foundBet.Amount = betVm.Amount;
         //         foundBet.CanAcceptNumber = betVm.CanAcceptNumber;
-        //         foundBet.UpdatedOn = DateTime.UtcNow;
+        //         foundBet.UpdatedOn = DateTime.Now;
         //         foundBet.IsActive = betVm.IsActive;
         //         foundBet.DoesRequirePassCode = betVm.DoesRequirePassCode;
         //         await _unitOfWork.Save();

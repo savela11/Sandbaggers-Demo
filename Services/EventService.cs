@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Data;
 using Data.Models;
@@ -79,25 +80,38 @@ namespace Services
                     teamVmList.Add(teamVm);
                 }
 
+                List<ItineraryVm> itineraries = String.IsNullOrEmpty(evnt.Itineraries) || String.IsNullOrWhiteSpace(evnt.Itineraries)
+                    ? new List<ItineraryVm>()
+                    // ReSharper disable once AssignNullToNotNullAttribute
+                    : JsonSerializer.Deserialize<List<Itinerary>>(evnt.Itineraries).Select(i => new ItineraryVm
+                    {
+                        Day = i.Day,
+                        Time = i.Time,
+                        Description = i.Description
+                    }).ToList();
+
+
+                var locationVm = new LocationVm();
+                if (!String.IsNullOrEmpty(evnt.Location))
+                {
+                    Location location = JsonSerializer.Deserialize<Location>(evnt.Location);
+                    if (location != null)
+                    {
+                        locationVm.Name = location.Name;
+                        locationVm.StreetName = location.StreetName;
+                        locationVm.StreetNumbers = location.StreetNumbers;
+                        locationVm.City = location.City;
+                        locationVm.State = location.State;
+                        locationVm.PostalCode = location.PostalCode;
+                    }
+                }
 
                 var eventVm = new EventVm
                 {
                     EventId = evnt.EventId,
                     Name = evnt.Name,
-                    Location = new LocationVm
-                    {
-                        Name = evnt.Location.Name,
-                        StreetNumbers = evnt.Location.StreetNumbers,
-                        StreetName = evnt.Location.StreetName,
-                        City = evnt.Location.City,
-                        PostalCode = evnt.Location.PostalCode
-                    },
-                    Itineraries = evnt.Itineraries.Select(i => new ItineraryVm
-                    {
-                        Day = i.Description,
-                        Time = i.Time,
-                        Description = i.Description
-                    }).ToList(),
+                    Location = locationVm,
+                    Itineraries = itineraries,
                     RegisteredUsers = registeredUserVmList,
                     Teams = teamVmList,
                     Year = evnt.Year,
@@ -158,17 +172,20 @@ namespace Services
                     {
                         Name = createEventDto.Name,
                         Year = createEventDto.Year,
-                        Location = new Location
+                        Location = JsonSerializer.Serialize(new LocationVm
                         {
                             Name = "",
-                            City = "",
-                            StreetName = "",
                             StreetNumbers = "",
+                            StreetName = "",
+                            State = "",
+                            City = "",
                             PostalCode = ""
-                        },
-                        Itineraries = new List<Itinerary>(),
-                        CreatedOn = DateTime.UtcNow
+                        }),
+
+                        Itineraries = JsonSerializer.Serialize(new List<ItineraryVm>()),
+                        CreatedOn = DateTime.Now
                     };
+
 
                     var createdEvent = await _unitOfWork.Event.AddAsync(sandbaggerEvent);
                     var eventResults = new EventResults
@@ -192,7 +209,7 @@ namespace Services
                     var powerRanking = new PowerRanking
                     {
                         Disclaimer = "",
-                        CreatedOn = DateTime.UtcNow,
+                        CreatedOn = DateTime.Now,
                         Rankings = new List<Ranking>(),
                         Year = createdEvent.Year,
                         EventId = createdEvent.EventId,
@@ -294,21 +311,13 @@ namespace Services
                 }
 
                 foundEvent.Name = sandbaggerEventVm.Name;
-                foundEvent.Itineraries = sandbaggerEventVm.Itineraries.Select(i => new Itinerary
-                {
-                    Day = i.Day,
-                    Time = i.Time,
-                    Description = i.Description
-                }).ToList();
-                foundEvent.Location = new Location
-                {
-                    Name = sandbaggerEventVm.Location.Name,
-                    StreetNumbers = sandbaggerEventVm.Location.StreetNumbers,
-                    StreetName = sandbaggerEventVm.Location.StreetName,
-                    City = sandbaggerEventVm.Location.City,
-                    PostalCode = sandbaggerEventVm.Location.PostalCode
-                };
-                foundEvent.UpdatedOn = DateTime.UtcNow;
+                foundEvent.Itineraries = JsonSerializer.Serialize(sandbaggerEventVm.Itineraries);
+
+
+                foundEvent.Location = JsonSerializer.Serialize(sandbaggerEventVm.Location);
+
+
+                foundEvent.UpdatedOn = DateTime.Now;
 
 
                 //check if there is already an event active or current year
@@ -570,24 +579,53 @@ namespace Services
                 }
 
 
+                List<ItineraryVm> itineraries = String.IsNullOrEmpty(foundEvent.Itineraries) || String.IsNullOrWhiteSpace(foundEvent.Itineraries)
+                    ? new List<ItineraryVm>()
+                    // ReSharper disable once AssignNullToNotNullAttribute
+                    : JsonSerializer.Deserialize<List<Itinerary>>(foundEvent.Itineraries).Select(i => new ItineraryVm
+                    {
+                        Day = i.Day,
+                        Time = i.Time,
+                        Description = i.Description
+                    }).ToList();
+
+
+                var locationVm = new LocationVm();
+                if (!String.IsNullOrEmpty(foundEvent.Location))
+                {
+                    Location location = JsonSerializer.Deserialize<Location>(foundEvent.Location);
+                    if (location != null)
+                    {
+                        locationVm.Name = location.Name;
+                        locationVm.StreetName = location.StreetName;
+                        locationVm.StreetNumbers = location.StreetNumbers;
+                        locationVm.City = location.City;
+                        locationVm.State = location.State;
+                        locationVm.PostalCode = location.PostalCode;
+                    }
+                }
+
                 var adminEventManagerVm = new AdminEventManagerVm
                 {
                     EventId = foundEvent.EventId,
                     Name = foundEvent.Name,
-                    Location = new LocationVm
-                    {
-                        Name = foundEvent.Location.Name,
-                        StreetNumbers = foundEvent.Location.StreetNumbers,
-                        StreetName = foundEvent.Location.StreetName,
-                        City = foundEvent.Location.City,
-                        PostalCode = foundEvent.Location.PostalCode
-                    },
-                    Itineraries = foundEvent.Itineraries.Select(i => new ItineraryVm
-                    {
-                        Day = i.Description,
-                        Time = i.Time,
-                        Description = i.Description
-                    }).ToList(),
+                    Location = locationVm,
+                    // Location = new LocationVm
+                    // {
+                    //     Name = foundEvent.Location.Name,
+                    //     StreetNumbers = foundEvent.Location.StreetNumbers,
+                    //     StreetName = foundEvent.Location.StreetName,
+                    //     State = foundEvent.Location.State,
+                    //     City = foundEvent.Location.City,
+                    //     PostalCode = foundEvent.Location.PostalCode
+                    // },
+                    // Itineraries = foundEvent.Itineraries.Select(i => new ItineraryVm
+                    // {
+                    //     Day = i.Description,
+                    //     Time = i.Time,
+                    //     Description = i.Description
+                    // }).ToList(),
+                    Itineraries = itineraries,
                     RegisteredUsers = registeredUserVmList,
                     UnRegisteredUsers = unRegisteredUserVmList,
                     Teams = teamVmList,

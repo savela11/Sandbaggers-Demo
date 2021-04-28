@@ -192,8 +192,8 @@ namespace Services
                     IsActive = createBetDto.IsActive,
                     DoesRequirePassCode = createBetDto.DoesRequirePassCode,
                     AcceptedByUserIds = new List<string>(),
-                    CreatedOn = DateTime.UtcNow,
-                    UpdatedOn = DateTime.UtcNow,
+                    CreatedOn = DateTime.Now,
+                    UpdatedOn = DateTime.Now,
                 };
 
                 var createdBet = await _unitOfWork.Bet.AddAsync(bet);
@@ -430,7 +430,7 @@ namespace Services
                     foundBet.Title = betVm.Title;
                     foundBet.IsActive = betVm.IsActive;
                     foundBet.DoesRequirePassCode = betVm.DoesRequirePassCode;
-                    foundBet.UpdatedOn = DateTime.UtcNow;
+                    foundBet.UpdatedOn = DateTime.Now;
 
                     // disallow lowering the number of accepted bets to below the current amount of accepted user
                     if (betVm.CanAcceptNumber > foundBet.AcceptedByUserIds.Count)

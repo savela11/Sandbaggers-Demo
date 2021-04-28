@@ -10,7 +10,8 @@ namespace Data.Models
 
         public ApplicationUser User { get; set; }
 
-        [Column(TypeName = "jsonb")] public List<FavoriteLink> FavoriteLinks { get; set; } = new List<FavoriteLink>();
+        // [Column(TypeName = "jsonb")] public List<FavoriteLink> FavoriteLinks { get; set; } = new List<FavoriteLink>();
+        public string FavoriteLinks { get; set; }
 
         public bool IsContactNumberShowing { get; set; } = false;
 
