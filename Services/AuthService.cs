@@ -4,7 +4,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Data;
 using Data.Models;
@@ -103,7 +102,7 @@ namespace Services
                             Name = "Contacts",
                         }
                     };
-                    var newSettings = new UserSettings {UserId = newUser.Id, FavoriteLinks = JsonSerializer.Serialize(favoriteLinks)};
+                    var newSettings = new UserSettings {UserId = newUser.Id, FavoriteLinks = favoriteLinks};
                     newUser.UserProfile = newProfile;
                     newUser.UserSettings = newSettings;
 
@@ -195,11 +194,7 @@ namespace Services
                 {
                     var userRoles = await _unitOfWork.UserManager.UserRoles(foundUser);
                     var token = AuthenticateUser(foundUser, userRoles);
-                    List<FavoriteLinkVm> favoriteLinkVms = new List<FavoriteLinkVm>();
-                    if (!String.IsNullOrEmpty(foundUser.UserSettings.FavoriteLinks))
-                    {
-                        favoriteLinkVms = JsonSerializer.Deserialize<List<FavoriteLinkVm>>(foundUser.UserSettings.FavoriteLinks);
-                    }
+
 
                     var loggedInUserVm = new LoggedInUserVm
 
@@ -211,7 +206,11 @@ namespace Services
 
                         Settings = new UserSettingsVm
                         {
-                            FavoriteLinks = favoriteLinkVms,
+                            FavoriteLinks = foundUser.UserSettings.FavoriteLinks.Select(f => new FavoriteLinkVm
+                            {
+                                Name = f.Name,
+                                Link = f.Link
+                            }).ToList(),
                             IsContactEmailShowing = foundUser.UserSettings.IsContactEmailShowing,
                             IsContactNumberShowing = foundUser.UserSettings.IsContactNumberShowing
                         },

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.Json;
+using System.Linq;
 using System.Threading.Tasks;
 using Data;
 using Data.Models;
@@ -22,11 +22,6 @@ namespace Services
 
         public UserVm UserVm(ApplicationUser user)
         {
-            List<FavoriteLinkVm> favoriteLinkVms = new List<FavoriteLinkVm>();
-            if (!String.IsNullOrEmpty(user.UserSettings.FavoriteLinks))
-            {
-                favoriteLinkVms = JsonSerializer.Deserialize<List<FavoriteLinkVm>>(user.UserSettings.FavoriteLinks);
-            }
             var userVm = new UserVm
             {
                 Id = user.Id,
@@ -44,7 +39,11 @@ namespace Services
 
                 Settings = new UserSettingsVm
                 {
-                    FavoriteLinks = favoriteLinkVms,
+                    FavoriteLinks = user.UserSettings.FavoriteLinks.Select(u => new FavoriteLinkVm
+                    {
+                        Name = u.Name,
+                        Link = u.Link
+                    }).ToList(),
                     IsContactNumberShowing = user.UserSettings.IsContactNumberShowing,
                     IsContactEmailShowing = user.UserSettings.IsContactEmailShowing
                 },

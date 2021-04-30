@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Data;
 using Data.Models;
@@ -46,7 +44,11 @@ namespace Services
 
 
                 // Settings
-                foundUser.UserSettings.FavoriteLinks = JsonSerializer.Serialize(userVm.Settings.FavoriteLinks);
+                foundUser.UserSettings.FavoriteLinks = userVm.Settings.FavoriteLinks.Select(f => new FavoriteLink
+                {
+                    Name = f.Name,
+                    Link = f.Link
+                }).ToList();
                 foundUser.UserSettings.IsContactEmailShowing = userVm.Settings.IsContactEmailShowing;
                 foundUser.UserSettings.IsContactNumberShowing = userVm.Settings.IsContactNumberShowing;
 
