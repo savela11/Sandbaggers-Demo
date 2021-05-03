@@ -14,6 +14,7 @@ namespace Models.ViewModels
         {
             [Required] public string Id { get; set; }
             [Required] public string FullName { get; set; }
+            [Required] public string TeamName { get; set; }
             [Column(TypeName = "decimal(10,1)")] public decimal Balance { get; set; } = 0;
 
         }

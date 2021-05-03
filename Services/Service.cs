@@ -23,7 +23,7 @@ namespace Services
             PowerRanking = new PowerRankingService(_unitOfWork);
             EventResult = new EventResultsService(_unitOfWork);
             Team = new TeamService(_unitOfWork, _dbContext);
-            Draft = new DraftService(_unitOfWork);
+            Draft = new DraftService(_dbContext);
         }
 
 

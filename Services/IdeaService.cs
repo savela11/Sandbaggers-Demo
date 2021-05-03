@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Data;
@@ -44,8 +43,8 @@ namespace Services
                         FullName = u.FullName,
                         Image = u.UserProfile.Image
                     }).FirstOrDefault(u => u.Id == i.CreatedByUserId),
-                    CreatedOn = i.CreatedOn.ToString(),
-                    UpdatedOn = i.UpdatedOn
+                    CreatedOn = i.CreatedOn.ToString("d"),
+                    UpdatedOn = i.UpdatedOn.ToString("d")
                 }).ToList();
                 serviceResponse.Data = ideaVmList;
             }
@@ -101,8 +100,8 @@ namespace Services
                         FullName = foundUser.FullName,
                         Image = foundUser.UserProfile.Image
                     },
-                    CreatedOn = foundIdea.CreatedOn.ToString(),
-                    UpdatedOn = foundIdea.UpdatedOn
+                    CreatedOn = foundIdea.CreatedOn.ToString("d"),
+                    UpdatedOn = foundIdea.UpdatedOn.ToString("d")
                 };
 
                 serviceResponse.Data = ideaVm;
@@ -140,7 +139,7 @@ namespace Services
                     UpdatedOn = DateTime.Now
                 };
 
-                var createdIdea = await _dbContext.Ideas.AddAsync(idea);
+               await _dbContext.Ideas.AddAsync(idea);
 
 
                 await _dbContext.SaveChangesAsync();
@@ -156,8 +155,8 @@ namespace Services
                         FullName = foundUser.FullName,
                         Image = foundUser.UserProfile.Image
                     },
-                    CreatedOn = idea.CreatedOn.ToString(),
-                    UpdatedOn = idea.UpdatedOn
+                    CreatedOn = idea.CreatedOn.ToString("d"),
+                    UpdatedOn = idea.UpdatedOn.ToString("d")
                 };
 
                 serviceResponse.Data = ideaVm;
