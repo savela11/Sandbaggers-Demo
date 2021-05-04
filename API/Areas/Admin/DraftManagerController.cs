@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models.DTO;
-using Models.ViewModels.Views;
 using Services.Interface;
 
 namespace API.Areas.Admin
@@ -24,7 +23,7 @@ namespace API.Areas.Admin
         [HttpGet]
         public async Task<ActionResult> AdminDraftManagerData()
         {
-            var response = await _service.Draft.AdminDraftManagerData();
+            var response = await _service.DraftManager.AdminDraftManagerData();
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -34,9 +33,9 @@ namespace API.Areas.Admin
         }
 
         [HttpPost]
-        public async Task<ActionResult> EditDraft(DraftManagerViewData draftManagerViewData)
+        public async Task<ActionResult> UpdateDraftStatus(UpdateDraftStatusDto draftStatusDto)
         {
-            var response = await _service.Draft.EditDraft(draftManagerViewData);
+            var response = await _service.DraftManager.UpdateDraftStatus(draftStatusDto);
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -44,7 +43,5 @@ namespace API.Areas.Admin
 
             return Ok(response.Data);
         }
-
-
     }
 }

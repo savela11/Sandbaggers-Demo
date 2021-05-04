@@ -24,6 +24,9 @@ namespace Services
             EventResult = new EventResultsService(_unitOfWork);
             Team = new TeamService(_unitOfWork, _dbContext);
             Draft = new DraftService(_dbContext);
+            DraftManager = new DraftManagerService(_dbContext);
+            EventManager = new EventManagerService(_dbContext);
+            TeamManager = new TeamManagerService(_dbContext);
         }
 
 
@@ -38,5 +41,8 @@ namespace Services
         public IEventResultsService EventResult { get; private set; }
         public ITeamService Team { get; private set; }
         public IDraftService Draft { get; private set; }
+        public IDraftManagerService DraftManager { get; private set; }
+        public IEventManagerService EventManager { get; private set; }
+        public ITeamManagerService TeamManager { get; private set; }
     }
 }

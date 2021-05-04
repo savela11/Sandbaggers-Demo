@@ -13,5 +13,8 @@
         public IEventResultsService EventResult { get; }
         public ITeamService Team { get; }
         public IDraftService Draft { get; }
+        public IDraftManagerService DraftManager { get; }
+        public IEventManagerService EventManager { get; }
+        public ITeamManagerService TeamManager { get; }
     }
 }

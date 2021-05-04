@@ -15,7 +15,7 @@ namespace API.Areas.Admin
     {
         private readonly IService _service;
 
-        public EventManagerController( IService service)
+        public EventManagerController(IService service)
         {
             _service = service;
         }
@@ -23,7 +23,7 @@ namespace API.Areas.Admin
         [HttpGet("{eventId}")]
         public async Task<ActionResult> Event(int eventId)
         {
-            var response = await _service.Event.EventForEventManager(eventId);
+            var response = await _service.EventManager.EventForEventManager(eventId);
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -49,7 +49,7 @@ namespace API.Areas.Admin
         [HttpPost]
         public async Task<ActionResult> CreateEvent(CreateEventDto createEventDto)
         {
-            var response = await _service.Event.CreateEvent(createEventDto);
+            var response = await _service.EventManager.CreateEvent(createEventDto);
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -80,7 +80,7 @@ namespace API.Areas.Admin
         [HttpPost]
         public async Task<ActionResult> UnRegisterUser(RemoveUserFromEventDto removeUserFromEventDto)
         {
-            var response = await _service.Event.RemoveUserFromEvent(removeUserFromEventDto);
+            var response = await _service.EventManager.RemoveUserFromEvent(removeUserFromEventDto);
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -92,7 +92,7 @@ namespace API.Areas.Admin
         [HttpPost]
         public async Task<ActionResult> RegisterUser(RegisterUserForEventDto registerUserForEventDto)
         {
-            var response = await _service.Event.RegisterUserForEvent(registerUserForEventDto);
+            var response = await _service.EventManager.RegisterUserForEvent(registerUserForEventDto);
             if (response.Success == false)
             {
                 return BadRequest(response);

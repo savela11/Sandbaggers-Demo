@@ -25,7 +25,7 @@ namespace API.Areas.Admin
         [HttpPost]
         public async Task<ActionResult> CreateTeam(CreateTeamForEventDto createTeamForEventDto)
         {
-            var response = await _service.Team.CreateTeamForEvent(createTeamForEventDto);
+            var response = await _service.TeamManager.CreateTeamForEvent(createTeamForEventDto);
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -38,14 +38,14 @@ namespace API.Areas.Admin
         [HttpPost]
         public async Task<ActionResult> RemoveTeamFromEvent(RemoveTeamFromEventDto removeTeamFromEventDto)
         {
-            var response = await _service.Team.RemoveTeamFromEvent(removeTeamFromEventDto);
+            var response = await _service.TeamManager.RemoveTeamFromEvent(removeTeamFromEventDto);
 
             if (response.Success == false)
             {
                 return BadRequest(response);
             }
 
-            var eventVmForManagerResponse = await _service.Event.EventForEventManager(response.Data.EventId);
+            var eventVmForManagerResponse = await _service.EventManager.EventForEventManager(removeTeamFromEventDto.EventId);
             if (eventVmForManagerResponse.Success == false)
             {
                 return BadRequest(eventVmForManagerResponse);
@@ -70,7 +70,7 @@ namespace API.Areas.Admin
         [HttpPost]
         public async Task<ActionResult> UpdateTeams(List<TeamVm> teamVmList)
         {
-            var response = await _service.Team.UpdateTeams(teamVmList);
+            var response = await _service.TeamManager.UpdateTeams(teamVmList);
             if (response.Success == false)
             {
                 return BadRequest(response);
@@ -82,8 +82,14 @@ namespace API.Areas.Admin
         [HttpPost]
         public async Task<ActionResult> RemoveTeamCaptain(AddOrRemoveTeamCaptainDto removeTeamCaptainDto)
         {
-            var response = await _service.Team.RemoveTeamCaptain(removeTeamCaptainDto);
+            var response = await _service.TeamManager.RemoveTeamCaptain(removeTeamCaptainDto);
             if (response.Success == false)
+            {
+                return BadRequest(response);
+            }
+
+            var responseTwo = await _service.DraftManager.RemoveTeamCaptainFromDraft(removeTeamCaptainDto);
+            if (responseTwo.Success == false)
             {
                 return BadRequest(response);
             }
@@ -94,15 +100,19 @@ namespace API.Areas.Admin
         [HttpPost]
         public async Task<ActionResult> AddTeamCaptain(AddOrRemoveTeamCaptainDto addTeamCaptain)
         {
-            var response = await _service.Team.AddTeamCaptain(addTeamCaptain);
+            var response = await _service.TeamManager.AddTeamCaptain(addTeamCaptain);
             if (response.Success == false)
+            {
+                return BadRequest(response);
+            }
+
+            var responseTwo = await _service.DraftManager.AddTeamCaptainToDraft(addTeamCaptain);
+            if (responseTwo.Success == false)
             {
                 return BadRequest(response);
             }
 
             return Ok(response.Data);
         }
-
-
     }
 }
