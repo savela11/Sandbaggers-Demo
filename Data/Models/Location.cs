@@ -2,12 +2,12 @@
 {
     public class Location
     {
-        public string Name { get; set; }
-        public string StreetNumbers { get; set; }
-        public string StreetName { get; set; }
-        public string State { get; set; }
-        public string City { get; set; }
-        public string PostalCode { get; set; }
+        public string Name { get; set; } = "";
+        public string StreetNumbers { get; set; } = "";
+        public string StreetName { get; set; } = "";
+        public string State { get; set; } = "";
+        public string City { get; set; } = "";
+        public string PostalCode { get; set; } = "";
     }
 
 

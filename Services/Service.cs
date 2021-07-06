@@ -13,7 +13,7 @@ namespace Services
             _unitOfWork = unitOfWork;
             _dbContext = dbContext;
 
-            User = new UserService(_unitOfWork);
+            User = new UserService(_dbContext);
             Bet = new BetService(_unitOfWork);
             Dashboard = new DashboardService(_unitOfWork);
             Event = new EventService(_unitOfWork);
@@ -27,6 +27,7 @@ namespace Services
             DraftManager = new DraftManagerService(_dbContext);
             EventManager = new EventManagerService(_dbContext);
             TeamManager = new TeamManagerService(_dbContext);
+            CourseManager = new CourseManagerService(_dbContext);
         }
 
 
@@ -44,5 +45,6 @@ namespace Services
         public IDraftManagerService DraftManager { get; private set; }
         public IEventManagerService EventManager { get; private set; }
         public ITeamManagerService TeamManager { get; private set; }
+           public ICourseManagerService CourseManager { get; private set; }
     }
 }

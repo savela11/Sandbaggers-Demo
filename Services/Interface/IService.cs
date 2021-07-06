@@ -16,5 +16,6 @@
         public IDraftManagerService DraftManager { get; }
         public IEventManagerService EventManager { get; }
         public ITeamManagerService TeamManager { get; }
+        public ICourseManagerService CourseManager { get; }
     }
 }

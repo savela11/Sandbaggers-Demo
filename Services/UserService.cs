@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Data;
 using Data.Models;
+using Microsoft.EntityFrameworkCore;
 using Models.ViewModels;
 using Services.Interface;
 using Utilities;
@@ -13,11 +14,11 @@ namespace Services
 {
     public class UserService : IUserService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly AppDbContext _dbContext;
 
-        public UserService(IUnitOfWork unitOfWork)
+        public UserService(AppDbContext dbContext)
         {
-            _unitOfWork = unitOfWork;
+            _dbContext = dbContext;
         }
 
         public UserVm UserVm(ApplicationUser user)
@@ -56,7 +57,8 @@ namespace Services
             var serviceResponse = new ServiceResponse<List<UserVm>>();
             try
             {
-                var users = await _unitOfWork.User.GetAll();
+                // var users = await _unitOfWork.User.GetAll();
+                var users = await _dbContext.Users.Include(u => u.UserProfile).Include(u => u.UserSettings).ToListAsync();
 
                 List<UserVm> userVmList = new List<UserVm>();
                 foreach (var user in users)
@@ -83,7 +85,8 @@ namespace Services
             var serviceResponse = new ServiceResponse<UserVm>();
             try
             {
-                var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == id, includeProperties: "UserProfile,UserSettings");
+                // var foundUser = await _unitOfWork.User.GetFirstOrDefault(u => u.Id == id, includeProperties: "UserProfile,UserSettings");
+                var foundUser = await _dbContext.Users.Include(u => u.UserProfile).Include(u => u.UserSettings).FirstOrDefaultAsync(u => u.Id == id);
 
                 if (foundUser == null)
                 {

@@ -35,7 +35,7 @@ namespace API
                 options.AddPolicy(VueAppPolicy, builder =>
                 {
                     builder.WithOrigins(
-                            "https://sandbaggersclient.z20.web.core.windows.net/")
+                            "https://sandbaggersclient.z20.web.core.windows.net/", "http://localhost:8080", "http://10.0.0.56:8080", "https://localhost:5001", "http://localhost:3000")
                         .SetIsOriginAllowed((host) => true)
                         .AllowAnyHeader().AllowAnyMethod().AllowCredentials();
                 });
