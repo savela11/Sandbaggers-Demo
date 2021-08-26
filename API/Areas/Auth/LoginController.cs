@@ -22,7 +22,6 @@ namespace API.Areas.Auth
             _authService = authService;
         }
 
-
         [HttpPost]
         public async Task<ActionResult> UserLogin(LoginUserDto loginUserDto)
         {
