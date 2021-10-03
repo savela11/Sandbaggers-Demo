@@ -4,6 +4,6 @@
     {
         public string Secret { get; set; }
         public string AzureStorageCredentials { get; set; }
-        public string DBConnection { get; set; }
+        public string DbConnection { get; set; }
     }
 }

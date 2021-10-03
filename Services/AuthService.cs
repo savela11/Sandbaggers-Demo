@@ -268,12 +268,13 @@ namespace Services
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(ClaimTypes.Name, user.Id),
+                    new Claim(ClaimTypes.Name, user.Id)
                 }),
+                
                 // Issuer = api website that issued the token
                 // Audience - who the token is supposed to be read by
-                Expires = DateTime.Now.AddDays(1),
-                // Expires = DateTime.Now.AddSeconds(10),
+                // Expires = DateTime.Now.AddMinutes(1),
+                Expires = DateTime.UtcNow.AddSeconds(10),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature)
             };

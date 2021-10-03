@@ -30,6 +30,23 @@ namespace API.Config
             });
         }
 
+        public static bool LifetimeValidator(DateTime? notBefore, DateTime? expires, SecurityToken token, TokenValidationParameters @params)
+        {
+            if (expires != null)
+            {
+                return expires > DateTime.UtcNow;
+            }
+            return false;
+        }
+
+            public static bool Validate(
+                DateTime? notBefore,
+                DateTime? expires,
+                SecurityToken tokenToValidate,
+                TokenValidationParameters @param
+            ) {
+                return (expires != null && expires > DateTime.UtcNow);
+            }
         public static void ConfigureJwtAuthentication(this IServiceCollection services, string secret)
         {
             var key = Encoding.ASCII.GetBytes(secret);
@@ -46,6 +63,7 @@ namespace API.Config
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
+                    LifetimeValidator = Validate,
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     ValidateLifetime = true,
