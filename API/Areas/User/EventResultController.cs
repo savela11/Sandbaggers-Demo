@@ -24,6 +24,7 @@ namespace API.Areas.User
         public async Task<ActionResult> Results(int id)
         {
             var response = await _service.EventResult.EventResults(id);
+            
             if (response.Success == false)
             {
                 return BadRequest(response);

@@ -16,19 +16,20 @@ namespace Data.Repository
         {
             _context = db;
         }
+        
+        
+        public async Task<Bet> CreateBet(Bet createdBet)
+        {
+            await _context.Bets.AddAsync(createdBet);
+            await _context.SaveChangesAsync();
+            return createdBet;
+        }
         //
-        // public async Task<Bet> CreateBet(Bet createdBet)
-        // {
-        //     await _context.Bets.AddAsync(createdBet);
-        //     await _context.SaveChangesAsync();
-        //     return createdBet;
-        // }
-        //
-        // public async Task<List<Bet>> AllActiveBets()
-        // {
-        //     return await _context.Bets.OrderByDescending(b => b.CreatedOn).Where(b => b.IsActive).ToListAsync();
-        // }
-        //
+        public async Task<List<Bet>> AllActiveBets()
+        {
+            return await _context.Bets.OrderByDescending(b => b.CreatedOn).Where(b => b.IsActive).ToListAsync();
+        }
+        
         // public async Task<List<Bet>> UserBets(string id)
         // {
         //     return await _context.Bets.Where(b => b.CreatedByUserId == id).ToListAsync();

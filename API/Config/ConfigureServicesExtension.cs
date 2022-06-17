@@ -36,17 +36,20 @@ namespace API.Config
             {
                 return expires > DateTime.UtcNow;
             }
+
             return false;
         }
 
-            public static bool Validate(
-                DateTime? notBefore,
-                DateTime? expires,
-                SecurityToken tokenToValidate,
-                TokenValidationParameters @param
-            ) {
-                return (expires != null && expires > DateTime.UtcNow);
-            }
+        public static bool Validate(
+            DateTime? notBefore,
+            DateTime? expires,
+            SecurityToken tokenToValidate,
+            TokenValidationParameters @param
+        )
+        {
+            return (expires != null && expires > DateTime.UtcNow);
+        }
+
         public static void ConfigureJwtAuthentication(this IServiceCollection services, string secret)
         {
             var key = Encoding.ASCII.GetBytes(secret);
@@ -98,7 +101,7 @@ namespace API.Config
                 {
                     b.RequireAuthenticatedUser();
                     b.RequireClaim(ClaimTypes.Role, "Access.Api");
-                    b.AuthenticationSchemes = new List<string> {JwtBearerDefaults.AuthenticationScheme};
+                    b.AuthenticationSchemes = new List<string> { JwtBearerDefaults.AuthenticationScheme };
                 });
             });
         }
@@ -186,6 +189,5 @@ namespace API.Config
         //     });
         // }
         //
-
     }
 }

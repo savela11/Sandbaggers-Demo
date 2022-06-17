@@ -21,6 +21,7 @@ namespace Data
 
         public DbSet<UserProfile> UserProfiles { get; set; }
         public DbSet<UserSettings> UserSettings { get; set; }
+        public DbSet<BranchInformation> BranchInformation { get; set; }
         public DbSet<Course> Courses { get; set; }
         public DbSet<Round> Rounds { get; set; }
         public DbSet<Event> Events { get; set; }

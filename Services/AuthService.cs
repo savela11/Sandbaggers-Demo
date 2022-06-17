@@ -274,7 +274,7 @@ namespace Services
                 // Issuer = api website that issued the token
                 // Audience - who the token is supposed to be read by
                 // Expires = DateTime.Now.AddMinutes(1),
-                Expires = DateTime.UtcNow.AddSeconds(10),
+                Expires = DateTime.UtcNow.AddHours(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature)
             };

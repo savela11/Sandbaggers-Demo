@@ -1,4 +1,6 @@
 ﻿using Data;
+using Data.Repository;
+using Data.Repository.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Services;
 using Services.Interface;
@@ -10,7 +12,9 @@ namespace API.Config
         public static void Repositories(this IServiceCollection services)
         {
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IBetRepo, BetRepo>();
             services.AddScoped<IService, Service>();
+            services.AddTransient<IBranchInfoService, BranchInfoService>();
         }
 
         public static void Services(this IServiceCollection services)

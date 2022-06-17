@@ -13,24 +13,26 @@ namespace API.Areas.User
     [Route("api/[area]/[controller]/[action]")]
     public class BetController : ControllerBase
     {
-        private readonly IService _service;
+        // private readonly IService _service;
+        private readonly IBetService _betService;
 
-        public BetController(IService service)
+        public BetController(IBetService betService)
         {
-            _service = service;
+          _betService = betService;
         }
 
         [HttpGet]
         [Route("{betId}")]
         public async Task<ActionResult> ById(int betId)
         {
-            var response = await _service.Bet.BetById(betId);
+            var response = await _betService.BetById(betId);
+            
             if (response.Success == false)
             {
                 return BadRequest(response);
             }
 
-            var betVmResponse = await _service.Bet.BetVm(response.Data);
+            var betVmResponse = await _betService.BetVm(response.Data);
 
             if (betVmResponse.Success == false)
             {
@@ -76,7 +78,7 @@ namespace API.Areas.User
         [HttpPost]
         public async Task<ActionResult> CreateBet(CreateBetDto createBetDto)
         {
-            var response = await _service.Bet.CreateBet(createBetDto);
+            var response = await _betService.CreateBet(createBetDto);
             if (response.Success == false)
             {
                 return BadRequest(response);
